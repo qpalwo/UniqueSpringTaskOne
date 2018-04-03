@@ -49,6 +49,7 @@ public abstract class BaseFragment extends Fragment implements BaseView {
     protected boolean isAttachedContext(){
         return getActivity() != null;
     }
+
     /**
      * 检查activity连接情况
      */
@@ -57,9 +58,10 @@ public abstract class BaseFragment extends Fragment implements BaseView {
             throw new ActivityNotAttachedException();
         }
     }
+
     public static class ActivityNotAttachedException extends RuntimeException {
         public ActivityNotAttachedException() {
-            super("Fragment has disconnected from Activity ! - -.");
+            super("Fragment has disconnected from Activity !");
         }
     }
 }

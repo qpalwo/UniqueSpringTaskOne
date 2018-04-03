@@ -18,10 +18,12 @@ public class MainPresent extends BasePresent<MainView> {
 
     public void setPagerAdapter() {
         List<BaseFragment> fragments = new ArrayList<>();
-        String[] tabs = {"Latest", "Hot"};
-        getView().setPageAdapter(new PagerAdapter(
-                getView().getSupportFragmentManager(),
-                fragments, tabs));
+        String[] tabs = {"HomePage", "Latest", "Hot"};
+        if (isViewAttached()) {
+            getView().setPageAdapter(new PagerAdapter(
+                    getView().getSupportFragmentManager(),
+                    fragments, tabs));
+        }
     }
 
 
