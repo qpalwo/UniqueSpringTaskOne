@@ -1,6 +1,7 @@
 package com.example.v2ex_client.model;
 
 import com.example.v2ex_client.base.CallBack;
+import com.example.v2ex_client.model.Bean.Member;
 import com.example.v2ex_client.model.Bean.Post;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -18,6 +19,13 @@ public class ResponseHandle {
         Gson gson = new Gson();
         List<Post> posts = gson.fromJson(json, new TypeToken<List<Post>>() {}.getType());
         callBack.onSuccess(posts);
+        callBack.onComplete();
+    }
+
+    public static void memberHandler(String json, CallBack<Member> callBack){
+        Gson gson = new Gson();
+        Member member = gson.fromJson(json, Member.class);
+        callBack.onSuccess(member);
         callBack.onComplete();
     }
 }

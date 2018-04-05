@@ -18,7 +18,7 @@ import java.net.URL;
  * Created by 肖宇轩 on 2018/4/4.
  */
 
-public class HttConnectionUtils {
+public class HttpConnectionUtils {
 
     public static final String V2EX_HOT = "https://www.v2ex.com/api/topics/hot.json";
     public static final String V2EX_LATEST = "https://www.v2ex.com/api/topics/latest.json";

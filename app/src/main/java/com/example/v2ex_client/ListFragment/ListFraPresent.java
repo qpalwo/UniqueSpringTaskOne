@@ -18,7 +18,7 @@ import com.example.v2ex_client.base.CallBack;
 import com.example.v2ex_client.model.Bean.Node;
 import com.example.v2ex_client.model.Bean.Post;
 import com.example.v2ex_client.model.DataUtil;
-import com.example.v2ex_client.model.HttConnectionUtils;
+import com.example.v2ex_client.model.HttpConnectionUtils;
 import com.example.v2ex_client.model.ResponseHandle;
 
 import java.util.ArrayList;
@@ -46,11 +46,11 @@ class ListFraPresent extends BasePresent<ListView> {
     void refreahList(String type) {
         String requestAddress = null;
         if (type.equals("hot_post")) {
-            requestAddress = HttConnectionUtils.V2EX_HOT;
+            requestAddress = HttpConnectionUtils.V2EX_HOT;
         } else if (type.equals("latest_post")) {
-            requestAddress = HttConnectionUtils.V2EX_LATEST;
+            requestAddress = HttpConnectionUtils.V2EX_LATEST;
         }
-        HttConnectionUtils.getResponse(
+        HttpConnectionUtils.getResponse(
                 "GET",
                 null,
                 requestAddress,
@@ -206,7 +206,7 @@ class ListFraPresent extends BasePresent<ListView> {
         @Override
         public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
 
-            View view = LayoutInflater.from(getView().getContext()).inflate
+            View view = LayoutInflater.from(context).inflate
                     (R.layout.post_item, parent, false);
 
             ViewHolder viewHolder = new ViewHolder(view, new ItemOnClickListener() {
