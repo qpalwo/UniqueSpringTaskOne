@@ -15,7 +15,6 @@ import android.view.ViewGroup;
 
 public abstract class BaseFragment extends Fragment implements BaseView {
     public abstract int getContentViewId();
-    protected abstract void initAllMembersView(Bundle savedInstanceState);
     protected Context mContext;
     protected View mRootView;
 
@@ -24,7 +23,6 @@ public abstract class BaseFragment extends Fragment implements BaseView {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         mRootView = inflater.inflate(getContentViewId(), container, false);
         this.mContext = getActivity();
-        initAllMembersView(savedInstanceState);
         return mRootView;
     }
 

@@ -11,13 +11,17 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.example.v2ex_client.R;
 import com.example.v2ex_client.base.BasePresent;
+import com.example.v2ex_client.base.CallBack;
 import com.example.v2ex_client.model.Bean.Node;
 import com.example.v2ex_client.model.Bean.Post;
 import com.example.v2ex_client.model.DataUtil;
+import com.example.v2ex_client.model.HttConnectionUtils;
+import com.example.v2ex_client.model.ResponseHandle;
 
-import java.util.Date;
+import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
@@ -28,9 +32,75 @@ import butterknife.OnClick;
  * Created by 肖宇轩 on 2018/4/3.
  */
 
-public class ListFraPresent extends BasePresent<ListView> {
+class ListFraPresent extends BasePresent<ListView> {
 
     private List<Node> nodes;
+
+    void setAdapter() {
+        PostItemAdapter postItemAdapter = new PostItemAdapter(
+                getView().getContext(),
+                new ArrayList<Post>());
+        getView().getListRecyclerView().setAdapter(postItemAdapter);
+    }
+
+    void refreahList(String type) {
+        String requestAddress = null;
+        if (type.equals("hot_post")) {
+            requestAddress = HttConnectionUtils.V2EX_HOT;
+        } else if (type.equals("latest_post")) {
+            requestAddress = HttConnectionUtils.V2EX_LATEST;
+        }
+        HttConnectionUtils.getResponse(
+                "GET",
+                null,
+                requestAddress,
+                new CallBack<String>() {
+                    String data;
+
+                    @Override
+                    public void onSuccess(String data) {
+                        this.data = data;
+                    }
+
+                    @Override
+                    public void onFailure(String msg) {
+                        //getView().showToast(msg);
+                        getView().getRefreshLayout().finishRefresh(false);
+                    }
+
+                    @Override
+                    public void onError() {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        ResponseHandle.postHandler(data,
+                                new CallBack<List<Post>>() {
+                                    @Override
+                                    public void onSuccess(List<Post> data) {
+                                        PostItemAdapter postItemAdapter = (PostItemAdapter) getView().getListRecyclerView().getAdapter();
+                                        postItemAdapter.changeData(data);
+                                    }
+
+                                    @Override
+                                    public void onFailure(String msg) {
+                                        getView().getRefreshLayout().finishRefresh(false);
+                                    }
+
+                                    @Override
+                                    public void onError() {
+
+                                    }
+
+                                    @Override
+                                    public void onComplete() {
+                                        getView().getRefreshLayout().finishRefresh();
+                                    }
+                                });
+                    }
+                });
+    }
 
     private interface ItemOnClickListener {
         void onItemClick(View view, int position);
@@ -87,8 +157,7 @@ public class ListFraPresent extends BasePresent<ListView> {
 
     }
 
-
-    private class PostItemAdapter extends RecyclerView.Adapter<PostItemAdapter.ViewHolder> {
+    public class PostItemAdapter extends RecyclerView.Adapter<PostItemAdapter.ViewHolder> {
 
         private List<Post> posts;
         private Context context;
@@ -128,7 +197,7 @@ public class ListFraPresent extends BasePresent<ListView> {
             }
         }
 
-        public PostItemAdapter(Context context, List<Post> posts){
+        PostItemAdapter(Context context, List<Post> posts) {
             this.context = context;
             this.posts = posts;
         }
@@ -166,8 +235,12 @@ public class ListFraPresent extends BasePresent<ListView> {
             holder.postTitle.setText(post.getTitle());
             holder.postAuthor.setText(post.getMember().getUsername());
             holder.postLab.setText(post.getNode().getName());
-            holder.postReplyNumber.setText(post.getReplies());
+            holder.postReplyNumber.setText(post.getReplies() + "");
             holder.postTime.setText(DataUtil.convertTimeToFormat(post.getLast_touched()));
+
+            Glide.with(getView().getContext())
+                    .load("https:" + post.getMember().getAvatar_large())
+                    .into(holder.postImg);
         }
 
         @Override
@@ -177,6 +250,16 @@ public class ListFraPresent extends BasePresent<ListView> {
             } else {
                 return posts.size();
             }
+        }
+
+        public void changeData(List<Post> posts) {
+            this.posts = posts;
+            notifyDataSetChanged();
+        }
+
+        public void addData(List<Post> posts) {
+            this.posts.addAll(posts);
+            notifyDataSetChanged();
         }
 
     }

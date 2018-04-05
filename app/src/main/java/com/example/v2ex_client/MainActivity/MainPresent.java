@@ -1,9 +1,11 @@
 package com.example.v2ex_client.MainActivity;
 
+import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 
+import com.example.v2ex_client.ListFragment.ListFragment;
 import com.example.v2ex_client.base.BaseFragment;
 import com.example.v2ex_client.base.BasePresent;
 
@@ -18,11 +20,27 @@ public class MainPresent extends BasePresent<MainView> {
 
     public void setPagerAdapter() {
         List<BaseFragment> fragments = new ArrayList<>();
-        String[] tabs = {"HomePage", "Latest", "Hot"};
+        String[] tabs = {"Latest", "Hot"};
+
+        //实例化Latest页面
+        Bundle latestBundle = new Bundle();
+        latestBundle.putString("type", "latest_post");
+        ListFragment latestFragment = new ListFragment();
+        latestFragment.setArguments(latestBundle);
+
+        //实例化Hot页面
+        Bundle hotBundle = new Bundle();
+        hotBundle.putString("type", "hot_post");
+        ListFragment hotFragment = new ListFragment();
+        hotFragment.setArguments(hotBundle);
+
+        fragments.add((BaseFragment)latestFragment);
+        fragments.add((BaseFragment)hotFragment);
         if (isViewAttached()) {
             getView().setPageAdapter(new PagerAdapter(
                     getView().getSupportFragmentManager(),
-                    fragments, tabs));
+                    fragments,
+                    tabs));
         }
     }
 
