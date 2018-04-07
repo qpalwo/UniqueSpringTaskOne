@@ -1,6 +1,7 @@
 package com.example.v2ex_client.MainActivity;
 
 import android.os.Bundle;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.PagerTabStrip;
 import android.support.v4.view.ViewPager;
 
@@ -31,6 +32,13 @@ public class MainActivity extends BaseActivity implements MainView {
     protected void onDestroy() {
         super.onDestroy();
         mainPresent.detachView();
+    }
+
+    @Override
+    public void onBackPressed(){
+        //showToast("点击到返回了");
+        super.onBackPressed();
+
     }
 
     @Override

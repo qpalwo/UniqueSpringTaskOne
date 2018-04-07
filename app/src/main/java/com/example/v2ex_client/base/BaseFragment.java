@@ -13,7 +13,7 @@ import android.view.ViewGroup;
  * Created by 肖宇轩 on 2018/3/3.
  */
 
-public abstract class BaseFragment extends Fragment implements BaseView {
+public abstract class BaseFragment extends Fragment implements BaseView, HandleBackInterface{
     public abstract int getContentViewId();
     protected Context mContext;
     protected View mRootView;
@@ -41,6 +41,11 @@ public abstract class BaseFragment extends Fragment implements BaseView {
     public void showToast(String msg) {
         checkActivityAttached();
         ((BaseActivity) mContext).showToast(msg);
+    }
+
+    @Override
+    public boolean onBackPressed(){
+        return HandleBackUtil.handleBackPress(this);
     }
 
 

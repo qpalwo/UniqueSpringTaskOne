@@ -1,6 +1,5 @@
 package com.example.v2ex_client.ListFragment;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.LinearLayoutManager;
@@ -18,6 +17,8 @@ import com.scwang.smartrefresh.layout.api.RefreshLayout;
 import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
 import com.scwang.smartrefresh.layout.header.BezierRadarHeader;
 import com.scwang.smartrefresh.layout.listener.OnRefreshListener;
+
+import java.io.Serializable;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -52,22 +53,8 @@ public class ListFragment extends BaseFragment implements ListView {
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
         listRecyclerView.setLayoutManager(layoutManager);
         listFraPresent.setAdapter();
-
-        rootView.setOnKeyListener(new View.OnKeyListener() {
-            @Override
-            public boolean onKey(View view, int i, KeyEvent keyEvent) {
-                if(i == KeyEvent.KEYCODE_BACK){
-                    FragmentManager fragmentManager = getChildFragmentManager();
-                    fragmentManager.popBackStack();
-                    return true;
-                }
-                return false;
-            }
-        });
         //刷新加载设置
         initRefreshLayout(getArguments().getString("type"));
-        initRefreshHeader();
-        initLoadFooter();
         refreshLayout.autoRefresh();
         listFraPresent.refreshList(getArguments().getString("type"));
         return rootView;
@@ -84,6 +71,7 @@ public class ListFragment extends BaseFragment implements ListView {
     public RecyclerView getListRecyclerView() {
         return listRecyclerView;
     }
+
 
     private void initRefreshLayout(final String type) {
         if (isAttachedContext()) {
@@ -142,19 +130,10 @@ public class ListFragment extends BaseFragment implements ListView {
 //        refreshLayout.setNoMoreData(false);//恢复没有更多数据的原始状态 1.0.5
     }
 
-    private void initRefreshHeader() {
 
-    }
-
-    private void initLoadFooter() {
-
-    }
-
-    private void onRefresh(final String type) {
-
-    }
 
     public void addPostFragment(Post post){
+        refreshLayout.setEnableRefresh(false);
         PostFragment postFragment = new PostFragment();
         Bundle bundle = new Bundle();
         bundle.putSerializable("Post", post);
@@ -164,6 +143,12 @@ public class ListFragment extends BaseFragment implements ListView {
         transaction.add(R.id.fragment_container, postFragment)
                 .addToBackStack("post")
                 .commit();
+    }
+
+    @Override
+    public boolean onBackPressed(){
+        refreshLayout.setEnableRefresh(true);
+        return super.onBackPressed();
     }
 
     public RefreshLayout getRefreshLayout() {

@@ -22,6 +22,13 @@ public abstract class BaseActivity extends AppCompatActivity implements BaseView
     }
 
     @Override
+    public void onBackPressed(){
+        if(!HandleBackUtil.handleBackPress(this)){
+            super.onBackPressed();
+        }
+    }
+
+    @Override
     public void showLoading() {
         if (!mProgressDialog.isShowing()) {
             mProgressDialog.show();

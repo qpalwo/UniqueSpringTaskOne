@@ -9,7 +9,5 @@ import com.example.v2ex_client.base.BaseView;
  */
 
 public interface PostView extends BaseView {
-    void initPostContent(String checked, String createTime);
-
     RecyclerView getPostRecycler();
 }

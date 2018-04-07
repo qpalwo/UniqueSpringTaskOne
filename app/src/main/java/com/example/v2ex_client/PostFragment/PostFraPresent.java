@@ -4,6 +4,7 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
+import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,10 +17,7 @@ import com.example.v2ex_client.base.BasePresent;
 import com.example.v2ex_client.base.CallBack;
 import com.example.v2ex_client.model.Bean.Post;
 import com.example.v2ex_client.model.Bean.Reply;
-import com.example.v2ex_client.model.DataUtil;
 import com.example.v2ex_client.model.JsoupUtils;
-
-import org.jsoup.Jsoup;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,46 +41,45 @@ public class PostFraPresent extends BasePresent<PostView> {
     void initPostContent() {
         JsoupUtils jsoup = new JsoupUtils();
         if (isViewAttached()) {
-            getView().initPostContent(
-                    "temp",
-                    DataUtil.timeStampToStr(post.getCreated()));
-//            jsoup.getPostCheckedTimes(post.getUrl(), new CallBack<String>() {
-//                String checked = null;
-//                @Override
-//                public void onSuccess(String data) {
-//                    checked = data;
-//                }
-//
-//                @Override
-//                public void onFailure(String msg) {
-//
-//                }
-//
-//                @Override
-//                public void onError() {
-//
-//                }
-//
-//                @Override
-//                public void onComplete() {
-//                    getView().initPostContent(
-//                            checked,
-//                            DataUtil.timeStampToStr(post.getCreated()));
-//                }
-//            });
+            jsoup.getPostCheckedTimes(post.getUrl(), new CallBack<String>() {
+                @Override
+                public void onSuccess(String data) {
+                    if (isViewAttached()) {
+                        PostReplyAdapter postReplyAdapter = (PostReplyAdapter) getView().getPostRecycler().getAdapter();
+                        postReplyAdapter.changeData(data);
+                    }
+                }
+
+                @Override
+                public void onFailure(String msg) {
+
+                }
+
+                @Override
+                public void onError() {
+
+                }
+
+                @Override
+                public void onComplete() {
+
+                }
+            });
         }
     }
 
     void refreshData() {
+        //刷新帖子内容
+        initPostContent();
         JsoupUtils jsoup = new JsoupUtils();
         jsoup.getReplies(post.getUrl(), new CallBack<List<Reply>>() {
             @Override
             public void onSuccess(List<Reply> data) {
-                //刷新帖子内容
-                initPostContent();
                 //刷新回复列表
-                PostReplyAdapter postReplyAdapter = (PostReplyAdapter) getView().getPostRecycler().getAdapter();
-                postReplyAdapter.changeData(data);
+                if (isViewAttached()) {
+                    PostReplyAdapter postReplyAdapter = (PostReplyAdapter) getView().getPostRecycler().getAdapter();
+                    postReplyAdapter.changeData(data);
+                }
             }
 
             @Override
@@ -107,8 +104,8 @@ public class PostFraPresent extends BasePresent<PostView> {
         if (isViewAttached()) {
             recyclerView = getView().getPostRecycler();
             recyclerView.setAdapter(new PostReplyAdapter(
-                    getView().getContext()//,
-                  //  new ArrayList<Reply>()
+                    getView().getContext(),
+                    post
             ));
         }
     }
@@ -117,9 +114,11 @@ public class PostFraPresent extends BasePresent<PostView> {
         void onItemClick(View view, int position);
     }
 
-    class PostReplyAdapter extends RecyclerView.Adapter<PostReplyAdapter.ViewHolder> {
+    class PostReplyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
         private List<Reply> replies;
+        private Post post;
+        private String checkedAndTime;
         private Context context;
 
         class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
@@ -151,36 +150,102 @@ public class PostFraPresent extends BasePresent<PostView> {
             }
         }
 
-        PostReplyAdapter(Context context) {
+        class PostDetailViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+
+            ItemOnClickListener itemOnClickListener;
+            @BindView(R.id.post_title)
+            TextView postTitle;
+            @BindView(R.id.user_name)
+            TextView userName;
+            @BindView(R.id.creat_time_checked)
+            TextView creatTimeChecked;
+            @BindView(R.id.user_img)
+            ImageView userImg;
+            @BindView(R.id.content)
+            TextView content;
+
+            public PostDetailViewHolder(View itemView, ItemOnClickListener itemOnClickListener) {
+                super(itemView);
+                ButterKnife.bind(this, itemView);
+                this.itemOnClickListener = itemOnClickListener;
+            }
+
+            @Override
+            @OnClick({R.id.user_name, R.id.user_img})
+            public void onClick(View view) {
+                itemOnClickListener.onItemClick(view, getAdapterPosition());
+            }
+        }
+
+        PostReplyAdapter(Context context, Post post) {
             this.context = context;
+            this.post = post;
             this.replies = new ArrayList<>();
+        }
+
+        @Override
+        public int getItemViewType(int position) {
+            if (position == 0) {
+                return 0;//  帖子详内容
+            } else {
+                return 1;//  回复内容
+            }
         }
 
         @NonNull
         @Override
-        public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            View view = LayoutInflater.from(context).inflate
-                    (R.layout.reply_item, parent, false);
+        public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            if (viewType == 0) {
+                View view = LayoutInflater.from(context).inflate
+                        (R.layout.post_detail_item, parent, false);
+                PostDetailViewHolder viewHolder = new PostDetailViewHolder(view, new ItemOnClickListener() {
+                    @Override
+                    public void onItemClick(View view, int position) {
 
-            ViewHolder viewHolder = new ViewHolder(view, new ItemOnClickListener() {
-                @Override
-                public void onItemClick(View view, int position) {
+                    }
+                });
+                return viewHolder;
 
-                }
-            });
-            return viewHolder;
+            } else {
+                View view = LayoutInflater.from(context).inflate
+                        (R.layout.reply_item, parent, false);
+                ViewHolder viewHolder = new ViewHolder(view, new ItemOnClickListener() {
+                    @Override
+                    public void onItemClick(View view, int position) {
+
+                    }
+                });
+                return viewHolder;
+            }
         }
 
         @Override
-        public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-            Reply reply = replies.get(position);
-            holder.userName.setText(reply.getReplyMember().getUsername());
-            holder.postTime.setText(reply.getTime());
-            holder.postReplyNumber.setText(reply.getReplyNumber());
-            holder.replyContent.setText(reply.getReplyContent());
-            Glide.with(context)
-                    .load(reply.getReplyMember().getAvatar_normal())
-                    .into(holder.postImg);
+        public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+            if (holder instanceof ViewHolder) {
+                ViewHolder viewHolder = (ViewHolder) holder;
+                Reply reply = replies.get(position);
+                if (reply != null) {
+                    viewHolder.userName.setText(reply.getReplyMember().getUsername());
+                    viewHolder.postTime.setText(reply.getTime());
+                    viewHolder.postReplyNumber.setText(reply.getReplyNumber());
+                    viewHolder.replyContent.setText(reply.getReplyContent());
+                    Glide.with(context)
+                            .load(reply.getReplyMember().getAvatar_normal())
+                            .into(viewHolder.postImg);
+                }
+            } else if (holder instanceof PostDetailViewHolder) {
+                PostDetailViewHolder viewHolder = (PostDetailViewHolder) holder;
+                if (post != null && checkedAndTime != null) {
+                    viewHolder.content.setText(Html.fromHtml(post.getContent_rendered()));
+                    viewHolder.creatTimeChecked.setText(checkedAndTime);
+                    viewHolder.postTitle.setText(post.getTitle());
+                    viewHolder.userName.setText(post.getMember().getUsername());
+                    Glide.with(context)
+                            .load(post.getMember().getAvatar_normal())
+                            .into(viewHolder.userImg);
+                }
+            }
+
         }
 
         @Override
@@ -191,6 +256,13 @@ public class PostFraPresent extends BasePresent<PostView> {
         public void changeData(List<Reply> list) {
             if (list != null) {
                 this.replies = list;
+                notifyDataSetChanged();
+            }
+        }
+
+        public void changeData(String checkedAndTime) {
+            if (checkedAndTime != null) {
+                this.checkedAndTime = checkedAndTime;
                 notifyDataSetChanged();
             }
         }

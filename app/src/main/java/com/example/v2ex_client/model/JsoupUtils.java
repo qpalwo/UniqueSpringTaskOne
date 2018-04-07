@@ -2,6 +2,7 @@ package com.example.v2ex_client.model;
 
 import android.os.AsyncTask;
 import android.os.Handler;
+import android.util.Log;
 
 import com.example.v2ex_client.base.CallBack;
 import com.example.v2ex_client.model.Bean.Member;
@@ -101,10 +102,13 @@ public class JsoupUtils {
             public void onSuccess(Document data) {
                 Elements checkedTime = data.getElementsByClass("gray");
                 String checked = checkedTime.get(0).text();
-                String pattern = "·\\s[1-9]\\d*\\s[\u4e00-\u9fa5][\u4e00-\u9fa5][\u4e00-\u9fa5]";
-                Pattern r = Pattern.compile(pattern);
-                Matcher m = r.matcher(checked);
-                callBack.onSuccess(m.group());
+                //String pattern = "·\\s\\[1-9\\]\\d\\*\\s\\[\\u4e00-\\u9fa5\\]\\[\\u4e00-\\u9fa5\\]\\[\\u4e00-\\u9fa5\\]";
+//                String pattern = "\\\\d";
+//                Pattern r = Pattern.compile(pattern);
+//                Matcher m = r.matcher(checked);
+//                int temp = m.groupCount();
+//                Log.i("********", "onSuccess: " + m.group());
+                callBack.onSuccess(checked);
                 callBack.onComplete();
             }
 
@@ -123,6 +127,8 @@ public class JsoupUtils {
 
             }
         });
+
+        jsoupAsyncTask.execute(address);
 
     }
 
