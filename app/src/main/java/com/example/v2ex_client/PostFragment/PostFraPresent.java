@@ -13,8 +13,15 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.example.v2ex_client.R;
 import com.example.v2ex_client.base.BasePresent;
+import com.example.v2ex_client.base.CallBack;
+import com.example.v2ex_client.model.Bean.Post;
 import com.example.v2ex_client.model.Bean.Reply;
+import com.example.v2ex_client.model.DataUtil;
+import com.example.v2ex_client.model.JsoupUtils;
 
+import org.jsoup.Jsoup;
+
+import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
@@ -26,6 +33,85 @@ import butterknife.OnClick;
  */
 
 public class PostFraPresent extends BasePresent<PostView> {
+
+    Post post;
+
+    PostFraPresent(Post post) {
+        this.post = post;
+    }
+
+    void initPostContent() {
+        JsoupUtils jsoup = new JsoupUtils();
+        if (isViewAttached()) {
+            getView().initPostContent(
+                    "temp",
+                    DataUtil.timeStampToStr(post.getCreated()));
+//            jsoup.getPostCheckedTimes(post.getUrl(), new CallBack<String>() {
+//                String checked = null;
+//                @Override
+//                public void onSuccess(String data) {
+//                    checked = data;
+//                }
+//
+//                @Override
+//                public void onFailure(String msg) {
+//
+//                }
+//
+//                @Override
+//                public void onError() {
+//
+//                }
+//
+//                @Override
+//                public void onComplete() {
+//                    getView().initPostContent(
+//                            checked,
+//                            DataUtil.timeStampToStr(post.getCreated()));
+//                }
+//            });
+        }
+    }
+
+    void refreshData() {
+        JsoupUtils jsoup = new JsoupUtils();
+        jsoup.getReplies(post.getUrl(), new CallBack<List<Reply>>() {
+            @Override
+            public void onSuccess(List<Reply> data) {
+                //刷新帖子内容
+                initPostContent();
+                //刷新回复列表
+                PostReplyAdapter postReplyAdapter = (PostReplyAdapter) getView().getPostRecycler().getAdapter();
+                postReplyAdapter.changeData(data);
+            }
+
+            @Override
+            public void onFailure(String msg) {
+
+            }
+
+            @Override
+            public void onError() {
+
+            }
+
+            @Override
+            public void onComplete() {
+
+            }
+        });
+    }
+
+    void setAdapter() {
+        RecyclerView recyclerView;
+        if (isViewAttached()) {
+            recyclerView = getView().getPostRecycler();
+            recyclerView.setAdapter(new PostReplyAdapter(
+                    getView().getContext()//,
+                  //  new ArrayList<Reply>()
+            ));
+        }
+    }
 
     private interface ItemOnClickListener {
         void onItemClick(View view, int position);
@@ -65,9 +151,9 @@ public class PostFraPresent extends BasePresent<PostView> {
             }
         }
 
-        PostReplyAdapter(Context context, List<Reply> replies) {
+        PostReplyAdapter(Context context) {
             this.context = context;
-            this.replies = replies;
+            this.replies = new ArrayList<>();
         }
 
         @NonNull
@@ -102,6 +188,19 @@ public class PostFraPresent extends BasePresent<PostView> {
             return replies.size();
         }
 
+        public void changeData(List<Reply> list) {
+            if (list != null) {
+                this.replies = list;
+                notifyDataSetChanged();
+            }
+        }
+
+        public void addData(List<Reply> replies) {
+            if (replies != null) {
+                this.replies.addAll(replies);
+                notifyDataSetChanged();
+            }
+        }
 
     }
 }

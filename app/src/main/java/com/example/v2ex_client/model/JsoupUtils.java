@@ -9,11 +9,14 @@ import com.example.v2ex_client.model.Bean.Reply;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by 肖宇轩 on 2018/4/5.
@@ -21,6 +24,8 @@ import java.util.List;
 
 public class JsoupUtils {
 
+
+    //获取  帖子详情页面的跟帖回复信息
     public void getReplies(String address, final CallBack<List<Reply>> callBack) {
         JsoupAsyncTask jsoupAsyncTask = new JsoupAsyncTask();
         jsoupAsyncTask.setCallBack(new CallBack<Document>() {
@@ -89,6 +94,39 @@ public class JsoupUtils {
 
     }
 
+    public void getPostCheckedTimes(String address, final CallBack<String> callBack){
+        JsoupAsyncTask jsoupAsyncTask = new JsoupAsyncTask();
+        jsoupAsyncTask.setCallBack(new CallBack<Document>() {
+            @Override
+            public void onSuccess(Document data) {
+                Elements checkedTime = data.getElementsByClass("gray");
+                String checked = checkedTime.get(0).text();
+                String pattern = "·\\s[1-9]\\d*\\s[\u4e00-\u9fa5][\u4e00-\u9fa5][\u4e00-\u9fa5]";
+                Pattern r = Pattern.compile(pattern);
+                Matcher m = r.matcher(checked);
+                callBack.onSuccess(m.group());
+                callBack.onComplete();
+            }
+
+            @Override
+            public void onFailure(String msg) {
+                callBack.onFailure(msg);
+            }
+
+            @Override
+            public void onError() {
+
+            }
+
+            @Override
+            public void onComplete() {
+
+            }
+        });
+
+    }
+
+    //获取Document
     class JsoupAsyncTask extends AsyncTask<String, Integer, Document> {
 
         CallBack<Document> callBack;

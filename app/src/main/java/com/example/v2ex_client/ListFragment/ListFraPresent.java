@@ -43,7 +43,7 @@ class ListFraPresent extends BasePresent<ListView> {
         getView().getListRecyclerView().setAdapter(postItemAdapter);
     }
 
-    void refreahList(String type) {
+    void refreshList(String type) {
         String requestAddress = null;
         if (type.equals("hot_post")) {
             requestAddress = HttpConnectionUtils.V2EX_HOT;
@@ -100,6 +100,10 @@ class ListFraPresent extends BasePresent<ListView> {
                                 });
                     }
                 });
+    }
+
+    void addPostFragment(Post post){
+        getView().addPostFragment(post);
     }
 
     private interface ItemOnClickListener {
@@ -214,6 +218,7 @@ class ListFraPresent extends BasePresent<ListView> {
                 public void onItemClick(View view, int position) {
                     switch (view.getId()) {
                         case R.id.post_title:
+                            addPostFragment(posts.get(position));
                             break;
                         case R.id.post_lab:
                             break;
@@ -222,6 +227,7 @@ class ListFraPresent extends BasePresent<ListView> {
                         case R.id.post_last_reply:
                             break;
                         case R.id.post_reply_number:
+                            addPostFragment(posts.get(position));
                             break;
                     }
                 }

@@ -1,14 +1,19 @@
 package com.example.v2ex_client.ListFragment;
-
 import android.os.Bundle;
+import android.os.Handler;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.example.v2ex_client.PostFragment.PostFragment;
 import com.example.v2ex_client.R;
 import com.example.v2ex_client.base.BaseFragment;
+import com.example.v2ex_client.model.Bean.Post;
 import com.scwang.smartrefresh.layout.api.RefreshLayout;
 import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
 import com.scwang.smartrefresh.layout.header.BezierRadarHeader;
@@ -47,13 +52,24 @@ public class ListFragment extends BaseFragment implements ListView {
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
         listRecyclerView.setLayoutManager(layoutManager);
         listFraPresent.setAdapter();
-        //刷新加载设置
 
+        rootView.setOnKeyListener(new View.OnKeyListener() {
+            @Override
+            public boolean onKey(View view, int i, KeyEvent keyEvent) {
+                if(i == KeyEvent.KEYCODE_BACK){
+                    FragmentManager fragmentManager = getChildFragmentManager();
+                    fragmentManager.popBackStack();
+                    return true;
+                }
+                return false;
+            }
+        });
+        //刷新加载设置
         initRefreshLayout(getArguments().getString("type"));
         initRefreshHeader();
         initLoadFooter();
         refreshLayout.autoRefresh();
-        listFraPresent.refreahList(getArguments().getString("type"));
+        listFraPresent.refreshList(getArguments().getString("type"));
         return rootView;
     }
 
@@ -108,7 +124,7 @@ public class ListFragment extends BaseFragment implements ListView {
         refreshLayout.setOnRefreshListener(new OnRefreshListener() {
             @Override
             public void onRefresh(RefreshLayout refreshLayout) {
-                listFraPresent.refreahList(type);
+                listFraPresent.refreshList(type);
             }
         });
 
@@ -136,6 +152,18 @@ public class ListFragment extends BaseFragment implements ListView {
 
     private void onRefresh(final String type) {
 
+    }
+
+    public void addPostFragment(Post post){
+        PostFragment postFragment = new PostFragment();
+        Bundle bundle = new Bundle();
+        bundle.putSerializable("Post", post);
+        postFragment.setArguments(bundle);
+        FragmentManager childFragmentManager = getChildFragmentManager();
+        FragmentTransaction transaction = childFragmentManager.beginTransaction();
+        transaction.add(R.id.fragment_container, postFragment)
+                .addToBackStack("post")
+                .commit();
     }
 
     public RefreshLayout getRefreshLayout() {

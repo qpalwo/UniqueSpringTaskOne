@@ -1,10 +1,12 @@
 package com.example.v2ex_client.model.Bean;
 
+import java.io.Serializable;
+
 /**
  * Created by 肖宇轩 on 2018/4/3.
  */
 
-public class Node {
+public class Node implements Serializable{
     /**
      * id : 90
      * name : python
