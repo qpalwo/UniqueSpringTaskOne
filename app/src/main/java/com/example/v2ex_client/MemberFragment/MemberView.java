@@ -1,5 +1,7 @@
 package com.example.v2ex_client.MemberFragment;
 
+import android.support.v7.widget.RecyclerView;
+
 import com.example.v2ex_client.base.BaseView;
 
 /**
@@ -7,4 +9,6 @@ import com.example.v2ex_client.base.BaseView;
  */
 
 public interface MemberView extends BaseView {
+
+    RecyclerView getMemberRecycler();
 }

@@ -224,6 +224,10 @@ public class PostFraPresent extends BasePresent<PostView> {
             if (holder instanceof ViewHolder) {
                 ViewHolder viewHolder = (ViewHolder) holder;
                 Reply reply = replies.get(position);
+                String istrurl = reply.getReplyMember().getAvatar_normal();
+                if (null == holder || null == istrurl || istrurl.equals("")) {
+                    return;
+                }
                 if (reply != null) {
                     viewHolder.userName.setText(reply.getReplyMember().getUsername());
                     viewHolder.postTime.setText(reply.getTime());
@@ -259,6 +263,7 @@ public class PostFraPresent extends BasePresent<PostView> {
                 notifyDataSetChanged();
             }
         }
+
 
         public void changeData(String checkedAndTime) {
             if (checkedAndTime != null) {

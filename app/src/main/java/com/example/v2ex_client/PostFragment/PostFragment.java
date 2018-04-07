@@ -31,7 +31,6 @@ public class PostFragment extends BaseFragment implements PostView {
     private PostFraPresent postFraPresent;
     @BindView(R.id.post_recycler)
     RecyclerView postRecycler;
-    RefreshLayout refreshLayout;
     Unbinder unbinder;
 
     @Override

@@ -154,7 +154,7 @@ class ListFraPresent extends BasePresent<ListView> {
             if (nodes == null) {
                 return 0;
             } else {
-                return nodes.size();
+                return nodes.size() + 1;
             }
         }
 
@@ -238,6 +238,10 @@ class ListFraPresent extends BasePresent<ListView> {
         @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
             Post post = posts.get(position);
+            String istrurl = post.getMember().getAvatar_normal();
+            if (null == holder || null == istrurl || istrurl.equals("")) {
+                return;
+            }
             holder.postTitle.setText(post.getTitle());
             holder.postAuthor.setText(post.getMember().getUsername());
             holder.postLab.setText(post.getNode().getName());
