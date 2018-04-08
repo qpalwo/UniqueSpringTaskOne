@@ -12,9 +12,13 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.example.v2ex_client.R;
 import com.example.v2ex_client.base.BasePresent;
+import com.example.v2ex_client.base.CallBack;
 import com.example.v2ex_client.model.Bean.Member;
 import com.example.v2ex_client.model.Bean.MemberPost;
+import com.example.v2ex_client.model.Bean.MemberReply;
+import com.example.v2ex_client.model.Bean.Post;
 import com.example.v2ex_client.model.DataUtil;
+import com.example.v2ex_client.model.JsoupUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,19 +34,76 @@ import butterknife.OnClick;
 public class MemberFraPresent extends BasePresent<MemberView> {
     Member member;
 
-    MemberFraPresent(Member member){
+    MemberFraPresent(Member member) {
         this.member = member;
     }
 
-    void setAdapter(){
+    void setAdapter() {
         RecyclerView recyclerView;
-        if (isViewAttached()){
+        if (isViewAttached()) {
             recyclerView = getView().getMemberRecycler();
             recyclerView.setAdapter(new MemberRecyclerAdapter(
                     getView().getContext(),
                     member));
         }
     }
+
+    public void refreshData(){
+        JsoupUtils jsoup = new JsoupUtils();
+        jsoup.getMemberPosts(member.getUrl(), new CallBack<List<MemberPost>>() {
+            @Override
+            public void onSuccess(List<MemberPost> data) {
+                if(isViewAttached()){
+                    MemberRecyclerAdapter memberRecyclerAdapter = (MemberRecyclerAdapter) getView()
+                            .getMemberRecycler().getAdapter();
+                    memberRecyclerAdapter.changePostData(data);
+                }
+            }
+
+            @Override
+            public void onFailure(String msg) {
+
+            }
+
+            @Override
+            public void onError() {
+
+            }
+
+            @Override
+            public void onComplete() {
+
+            }
+        });
+
+        jsoup.getMemberReplies(member.getUrl(), new CallBack<List<MemberReply>>() {
+            @Override
+            public void onSuccess(List<MemberReply> data) {
+                if (isViewAttached()){
+                    MemberRecyclerAdapter memberRecyclerAdapter = (MemberRecyclerAdapter)getView()
+                            .getMemberRecycler().getAdapter();
+                    memberRecyclerAdapter.changeReplyData(data);
+                }
+            }
+
+            @Override
+            public void onFailure(String msg) {
+
+            }
+
+            @Override
+            public void onError() {
+
+            }
+
+            @Override
+            public void onComplete() {
+
+            }
+        });
+
+    }
+
 
     private interface ItemOnClickListener {
         void onItemClick(View view, int position);
@@ -51,6 +112,8 @@ public class MemberFraPresent extends BasePresent<MemberView> {
     class MemberRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
         private List<MemberPost> memberPosts;
+
+        private List<MemberReply> memberReplies;
 
         private Member member;
 
@@ -108,18 +171,52 @@ public class MemberFraPresent extends BasePresent<MemberView> {
 
         }
 
+        class MemberReplyHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+
+            @BindView(R.id.member_replied_created_name)
+            TextView memberRepliedCreatedName;
+            @BindView(R.id.member_replied_node)
+            TextView memberRepliedNode;
+            @BindView(R.id.member_replied_title)
+            TextView memberRepliedTitle;
+            @BindView(R.id.member_replied_time)
+            TextView memberRepliedTime;
+            @BindView(R.id.member_reply_content)
+            TextView memberReplyContent;
+
+            ItemOnClickListener itemOnClickListener;
+
+            public MemberReplyHolder(View itemView, ItemOnClickListener itemOnClickListener) {
+                super(itemView);
+                ButterKnife.bind(this, itemView);
+                this.itemOnClickListener = itemOnClickListener;
+            }
+
+            @Override
+            @OnClick({R.id.member_replied_created_name, R.id.member_replied_node, R.id.member_replied_title, R.id.member_replied_time})
+            public void onClick(View v) {
+                itemOnClickListener.onItemClick(v, getAdapterPosition());
+            }
+
+        }
+
         MemberRecyclerAdapter(Context context, Member member) {
             this.context = context;
             this.member = member;
             memberPosts = new ArrayList<>();
+            memberReplies = new ArrayList<>();
         }
 
         @Override
         public int getItemViewType(int position) {
             if (position == 0) {
                 return 0;//  用户信息
-            } else {
+            } else if (position > 0 && memberPosts.size() > 0) {
                 return 1;//  用户帖子
+            } else if (position > memberPosts.size()) {
+                return 2;//  用户回复
+            } else {
+                return 4;
             }
         }
 
@@ -137,7 +234,7 @@ public class MemberFraPresent extends BasePresent<MemberView> {
                 });
                 return memberDetailHolder;
 
-            } else {
+            } else if (viewType == 1) {
                 View view = LayoutInflater.from(context).inflate
                         (R.layout.member_post_item, parent, false);
                 MemberPostHolder memberPostHolder = new MemberPostHolder(view, new ItemOnClickListener() {
@@ -156,35 +253,92 @@ public class MemberFraPresent extends BasePresent<MemberView> {
                     }
                 });
                 return memberPostHolder;
-
+            } else if (viewType == 2) {
+                View view = LayoutInflater.from(context).inflate
+                        (R.layout.member_reply_item, parent, false);
+                MemberReplyHolder memberReplyHolder = new MemberReplyHolder(view, new ItemOnClickListener() {
+                    @Override
+                    public void onItemClick(View view, int position) {
+                        switch (view.getId()) {
+                            case R.id.member_replied_created_name:
+                                break;
+                            case R.id.member_replied_node:
+                                break;
+                            case R.id.member_replied_title:
+                                break;
+                            case R.id.member_replied_time:
+                                break;
+                        }
+                    }
+                });
+                return memberReplyHolder;
+            } else {
+                //TODO  用户无回复或者用户无主题时的展示
+                return null;
             }
 
         }
 
         @Override
         public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-            if (holder instanceof MemberDetailHolder){
-                MemberDetailHolder memberDetailHolder = (MemberDetailHolder)holder;
+            if (holder instanceof MemberDetailHolder) {
+                MemberDetailHolder memberDetailHolder = (MemberDetailHolder) holder;
                 memberDetailHolder.memberName.setText(member.getUsername());
                 memberDetailHolder.memberNo.setText("V2EX第" + member.getId() + "号会员");
                 memberDetailHolder.memberTime.setText(DataUtil.convertTimeToFormat(member.getCreated()));
                 Glide.with(context)
                         .load(member.getAvatar_normal())
                         .into(memberDetailHolder.memberImg);
-            } else if (holder instanceof MemberPostHolder){
-                MemberPost memberPost = memberPosts.get(position);
-                MemberPostHolder memberPostHolder = (MemberPostHolder)holder;
+            } else if (holder instanceof MemberPostHolder) {
+                MemberPost memberPost = memberPosts.get(position - 1);
+                MemberPostHolder memberPostHolder = (MemberPostHolder) holder;
                 memberPostHolder.memberTitle.setText(memberPost.getTitle());
                 memberPostHolder.tag.setText(memberPost.getNode());
                 memberPostHolder.memberName.setText(member.getUsername());
                 memberPostHolder.memberLastReply.setText(memberPost.getLastReply());
                 memberPostHolder.time.setText(memberPost.getTimeAndLast());
+            } else if (holder instanceof MemberReplyHolder) {
+                MemberReply memberReply = memberReplies.get(position - memberPosts.size());
+                MemberReplyHolder memberReplyHolder = (MemberReplyHolder) holder;
+                memberReplyHolder.memberRepliedNode.setText(memberReply.repliedPost.getNode().getName());
+                memberReplyHolder.memberRepliedCreatedName.setText(memberReply.repliedCreatedMember.getUsername());
+                memberReplyHolder.memberRepliedTime.setText(memberReply.repliedTime);
+                memberReplyHolder.memberRepliedTitle.setText(memberReply.repliedPost.getTitle());
+                memberReplyHolder.memberReplyContent.setText(memberReply.repliedContent);
             }
         }
 
         @Override
         public int getItemCount() {
-            return memberPosts.size() + 1;
+            return memberPosts.size() + memberReplies.size() + 1;
+        }
+
+        public void addReplyData(List<MemberReply> replies) {
+            if (replies != null) {
+                this.memberReplies.addAll(replies);
+                notifyDataSetChanged();
+            }
+        }
+
+        public void changeReplyData(List<MemberReply> replies) {
+            if (replies != null) {
+                this.memberReplies = replies;
+                notifyDataSetChanged();
+            }
+        }
+
+        public void addPostData(List<MemberPost> posts) {
+            if (posts != null) {
+                this.memberPosts.addAll(posts);
+                notifyDataSetChanged();
+            }
+        }
+
+        public void changePostData(List<MemberPost> posts) {
+            if (posts != null) {
+                this.memberPosts = posts;
+                notifyDataSetChanged();
+            }
         }
 
 

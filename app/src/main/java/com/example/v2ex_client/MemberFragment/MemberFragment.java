@@ -44,6 +44,7 @@ public class MemberFragment extends BaseFragment implements MemberView {
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
         memberRecycler.setLayoutManager(linearLayoutManager);
         memberFraPresent.setAdapter();
+        memberFraPresent.refreshData();
         return rootView;
     }
 

@@ -6,6 +6,8 @@ import android.util.Log;
 
 import com.example.v2ex_client.base.CallBack;
 import com.example.v2ex_client.model.Bean.Member;
+import com.example.v2ex_client.model.Bean.MemberPost;
+import com.example.v2ex_client.model.Bean.MemberReply;
 import com.example.v2ex_client.model.Bean.Reply;
 
 import org.jsoup.Jsoup;
@@ -95,6 +97,7 @@ public class JsoupUtils {
 
     }
 
+    //获取帖子的点击次数
     public void getPostCheckedTimes(String address, final CallBack<String> callBack){
         JsoupAsyncTask jsoupAsyncTask = new JsoupAsyncTask();
         jsoupAsyncTask.setCallBack(new CallBack<Document>() {
@@ -102,12 +105,6 @@ public class JsoupUtils {
             public void onSuccess(Document data) {
                 Elements checkedTime = data.getElementsByClass("gray");
                 String checked = checkedTime.get(0).text();
-                //String pattern = "·\\s\\[1-9\\]\\d\\*\\s\\[\\u4e00-\\u9fa5\\]\\[\\u4e00-\\u9fa5\\]\\[\\u4e00-\\u9fa5\\]";
-//                String pattern = "\\\\d";
-//                Pattern r = Pattern.compile(pattern);
-//                Matcher m = r.matcher(checked);
-//                int temp = m.groupCount();
-//                Log.i("********", "onSuccess: " + m.group());
                 callBack.onSuccess(checked);
                 callBack.onComplete();
             }
@@ -130,6 +127,65 @@ public class JsoupUtils {
 
         jsoupAsyncTask.execute(address);
 
+    }
+
+    //获取用户 页面用户创建的主题
+    public void getMemberPosts(String address, final CallBack<List<MemberPost>> callBack){
+        JsoupAsyncTask jsoupAsyncTask = new JsoupAsyncTask();
+        jsoupAsyncTask.setCallBack(new CallBack<Document>() {
+            @Override
+            public void onSuccess(Document data) {
+
+            }
+
+            @Override
+            public void onFailure(String msg) {
+                callBack.onFailure(msg);
+            }
+
+            @Override
+            public void onError() {
+
+            }
+
+            @Override
+            public void onComplete() {
+
+            }
+        });
+        jsoupAsyncTask.execute(address);
+    }
+
+    //获取用户页面用户回复的主题
+    public void getMemberReplies(String address, final CallBack<List<MemberReply>> callBack){
+        JsoupAsyncTask jsoupAsyncTask = new JsoupAsyncTask();
+        jsoupAsyncTask.setCallBack(new CallBack<Document>() {
+            @Override
+            public void onSuccess(Document data) {
+
+            }
+
+            @Override
+            public void onFailure(String msg) {
+                callBack.onFailure(msg);
+            }
+
+            @Override
+            public void onError() {
+
+            }
+
+            @Override
+            public void onComplete() {
+
+            }
+        });
+        jsoupAsyncTask.execute(address);
+    }
+
+    //根据api获取用户具体信息
+    public void getMemberInfo(String address, final CallBack<Member> callBack){
+        //TODO 获取用户具体信息
     }
 
     //获取Document

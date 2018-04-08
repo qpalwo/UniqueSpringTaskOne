@@ -15,6 +15,7 @@ import com.bumptech.glide.Glide;
 import com.example.v2ex_client.R;
 import com.example.v2ex_client.base.BasePresent;
 import com.example.v2ex_client.base.CallBack;
+import com.example.v2ex_client.model.Bean.Member;
 import com.example.v2ex_client.model.Bean.Post;
 import com.example.v2ex_client.model.Bean.Reply;
 import com.example.v2ex_client.model.JsoupUtils;
@@ -68,6 +69,8 @@ public class PostFraPresent extends BasePresent<PostView> {
         }
     }
 
+
+    //TODO  加载帖子页面时缓慢  卡顿
     void refreshData() {
         //刷新帖子内容
         initPostContent();
@@ -107,6 +110,12 @@ public class PostFraPresent extends BasePresent<PostView> {
                     getView().getContext(),
                     post
             ));
+        }
+    }
+
+    private void addMemberFragment(Member member){
+        if (isViewAttached()){
+            getView().addMemberFragment(member);
         }
     }
 
@@ -212,7 +221,7 @@ public class PostFraPresent extends BasePresent<PostView> {
                 ViewHolder viewHolder = new ViewHolder(view, new ItemOnClickListener() {
                     @Override
                     public void onItemClick(View view, int position) {
-
+                        addMemberFragment(replies.get(position - 1).getReplyMember());
                     }
                 });
                 return viewHolder;
@@ -223,7 +232,7 @@ public class PostFraPresent extends BasePresent<PostView> {
         public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
             if (holder instanceof ViewHolder) {
                 ViewHolder viewHolder = (ViewHolder) holder;
-                Reply reply = replies.get(position);
+                Reply reply = replies.get(position - 1);
                 String istrurl = reply.getReplyMember().getAvatar_normal();
                 if (null == holder || null == istrurl || istrurl.equals("")) {
                     return;

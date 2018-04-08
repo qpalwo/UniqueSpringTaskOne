@@ -102,8 +102,10 @@ class ListFraPresent extends BasePresent<ListView> {
                 });
     }
 
-    void addPostFragment(Post post){
-        getView().addPostFragment(post);
+    private void addPostFragment(Post post) {
+        if (isViewAttached()) {
+            getView().addPostFragment(post);
+        }
     }
 
     private interface ItemOnClickListener {

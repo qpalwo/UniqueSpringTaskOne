@@ -3,6 +3,7 @@ package com.example.v2ex_client.PostFragment;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Html;
@@ -13,8 +14,10 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.example.v2ex_client.MemberFragment.MemberFragment;
 import com.example.v2ex_client.R;
 import com.example.v2ex_client.base.BaseFragment;
+import com.example.v2ex_client.model.Bean.Member;
 import com.example.v2ex_client.model.Bean.Post;
 import com.scwang.smartrefresh.layout.api.RefreshLayout;
 
@@ -71,9 +74,24 @@ public class PostFragment extends BaseFragment implements PostView {
     }
 
     @Override
+    public void addMemberFragment(Member member) {
+        MemberFragment memberFragment = new MemberFragment();
+        Bundle bundle = new Bundle();
+        bundle.putSerializable("Member", member);
+        memberFragment.setArguments(bundle);
+        FragmentManager childFragmentManager = getChildFragmentManager();
+        FragmentTransaction transaction = childFragmentManager.beginTransaction();
+        transaction.add(R.id.post_fragment, memberFragment)
+                .addToBackStack("member")
+                .commit();
+    }
+
+    @Override
     public void onDestroyView() {
         super.onDestroyView();
         unbinder.unbind();
         postFraPresent.detachView();
     }
+
+
 }
