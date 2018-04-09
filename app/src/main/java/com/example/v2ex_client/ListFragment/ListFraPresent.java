@@ -15,6 +15,7 @@ import com.bumptech.glide.Glide;
 import com.example.v2ex_client.R;
 import com.example.v2ex_client.base.BasePresent;
 import com.example.v2ex_client.base.CallBack;
+import com.example.v2ex_client.model.Bean.Member;
 import com.example.v2ex_client.model.Bean.Node;
 import com.example.v2ex_client.model.Bean.Post;
 import com.example.v2ex_client.model.DataUtil;
@@ -105,6 +106,12 @@ class ListFraPresent extends BasePresent<ListView> {
     private void addPostFragment(Post post) {
         if (isViewAttached()) {
             getView().addPostFragment(post);
+        }
+    }
+
+    private void addMemberFragment(Member member){
+        if (isViewAttached()){
+            getView().addMemberFragment(member);
         }
     }
 
@@ -225,8 +232,10 @@ class ListFraPresent extends BasePresent<ListView> {
                         case R.id.post_lab:
                             break;
                         case R.id.post_author:
+                            addMemberFragment(posts.get(position).getMember());
                             break;
                         case R.id.post_last_reply:
+                           // addMemberFragment();
                             break;
                         case R.id.post_reply_number:
                             addPostFragment(posts.get(position));

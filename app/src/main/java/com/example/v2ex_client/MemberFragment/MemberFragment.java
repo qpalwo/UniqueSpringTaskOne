@@ -1,6 +1,8 @@
 package com.example.v2ex_client.MemberFragment;
 
 import android.os.Bundle;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -8,9 +10,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
+import com.example.v2ex_client.PostFragment.PostFragment;
 import com.example.v2ex_client.R;
 import com.example.v2ex_client.base.BaseFragment;
 import com.example.v2ex_client.model.Bean.Member;
+import com.example.v2ex_client.model.Bean.Post;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -57,6 +61,33 @@ public class MemberFragment extends BaseFragment implements MemberView {
 
     public RecyclerView getMemberRecycler() {
         return memberRecycler;
+    }
+
+    @Override
+    public void addPostFragment(Post post) {
+        PostFragment postFragment = new PostFragment();
+        Bundle bundle = new Bundle();
+        bundle.putSerializable("Post", post);
+        postFragment.setArguments(bundle);
+        FragmentManager childFragmentManager = getChildFragmentManager();
+        FragmentTransaction transaction = childFragmentManager.beginTransaction();
+        transaction.add(R.id.fragment_container, postFragment)
+                .addToBackStack("post")
+                .commit();
+
+    }
+
+    @Override
+    public void addMemberFragment(Member member) {
+        MemberFragment memberFragment = new MemberFragment();
+        Bundle bundle = new Bundle();
+        bundle.putSerializable("Member", member);
+        memberFragment.setArguments(bundle);
+        FragmentManager childFragmentManager = getChildFragmentManager();
+        FragmentTransaction transaction = childFragmentManager.beginTransaction();
+        transaction.add(R.id.post_fragment, memberFragment)
+                .addToBackStack("member")
+                .commit();
     }
 
 }

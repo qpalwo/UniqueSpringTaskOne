@@ -9,9 +9,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.example.v2ex_client.MemberFragment.MemberFragment;
 import com.example.v2ex_client.PostFragment.PostFragment;
 import com.example.v2ex_client.R;
 import com.example.v2ex_client.base.BaseFragment;
+import com.example.v2ex_client.model.Bean.Member;
 import com.example.v2ex_client.model.Bean.Post;
 import com.scwang.smartrefresh.layout.api.RefreshLayout;
 import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
@@ -142,6 +144,19 @@ public class ListFragment extends BaseFragment implements ListView {
         FragmentTransaction transaction = childFragmentManager.beginTransaction();
         transaction.add(R.id.fragment_container, postFragment)
                 .addToBackStack("post")
+                .commit();
+    }
+
+    public void addMemberFragment(Member member) {
+        refreshLayout.setEnableRefresh(false);
+        MemberFragment memberFragment = new MemberFragment();
+        Bundle bundle = new Bundle();
+        bundle.putSerializable("Member", member);
+        memberFragment.setArguments(bundle);
+        FragmentManager childFragmentManager = getChildFragmentManager();
+        FragmentTransaction transaction = childFragmentManager.beginTransaction();
+        transaction.add(R.id.post_fragment, memberFragment)
+                .addToBackStack("member")
                 .commit();
     }
 

@@ -13,4 +13,6 @@ public interface PostView extends BaseView {
     RecyclerView getPostRecycler();
 
     void addMemberFragment(Member member);
+
+
 }

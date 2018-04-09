@@ -9,6 +9,7 @@ import com.example.v2ex_client.model.Bean.Member;
 import com.example.v2ex_client.model.Bean.MemberPost;
 import com.example.v2ex_client.model.Bean.MemberReply;
 import com.example.v2ex_client.model.Bean.Reply;
+import com.google.gson.Gson;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -184,8 +185,51 @@ public class JsoupUtils {
     }
 
     //根据api获取用户具体信息
-    public void getMemberInfo(String address, final CallBack<Member> callBack){
-        //TODO 获取用户具体信息
+    public void getMemberInfo(String name, final CallBack<Member> callBack){
+        HttpConnectionUtils.getResponse("GET",
+                null,
+                HttpConnectionUtils.V2EX_USER + "name=" + name,
+                new CallBack<String>() {
+                    @Override
+                    public void onSuccess(String data) {
+                        ResponseHandle.memberHandler(data, new CallBack<Member>() {
+                            @Override
+                            public void onSuccess(Member data) {
+                                callBack.onSuccess(data);
+                            }
+
+                            @Override
+                            public void onFailure(String msg) {
+
+                            }
+
+                            @Override
+                            public void onError() {
+
+                            }
+
+                            @Override
+                            public void onComplete() {
+                                callBack.onComplete();
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onFailure(String msg) {
+
+                    }
+
+                    @Override
+                    public void onError() {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });
     }
 
     //获取Document

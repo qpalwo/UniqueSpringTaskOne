@@ -221,7 +221,30 @@ public class PostFraPresent extends BasePresent<PostView> {
                 ViewHolder viewHolder = new ViewHolder(view, new ItemOnClickListener() {
                     @Override
                     public void onItemClick(View view, int position) {
-                        addMemberFragment(replies.get(position - 1).getReplyMember());
+                        //添加用户信息碎片
+                        JsoupUtils jsoup = new JsoupUtils();
+                        jsoup.getMemberInfo(replies.get(position - 1).getReplyMember().getUsername(), new CallBack<Member>() {
+                            @Override
+                            public void onSuccess(Member data) {
+                                addMemberFragment(data);
+                            }
+
+                            @Override
+                            public void onFailure(String msg) {
+
+                            }
+
+                            @Override
+                            public void onError() {
+
+                            }
+
+                            @Override
+                            public void onComplete() {
+
+                            }
+                        });
+
                     }
                 });
                 return viewHolder;

@@ -104,9 +104,48 @@ public class MemberFraPresent extends BasePresent<MemberView> {
 
     }
 
+    private void addPostFragment(Post post) {
+        if (isViewAttached()) {
+            getView().addPostFragment(post);
+        }
+    }
+
+    private void addMemberFragment(Member member){
+        if (isViewAttached()){
+            getView().addMemberFragment(member);
+        }
+    }
+
 
     private interface ItemOnClickListener {
         void onItemClick(View view, int position);
+    }
+
+    private void changeMember(final Member member){
+        JsoupUtils jsoupUtils = new JsoupUtils();
+        jsoupUtils.getMemberInfo(member.getUsername(), new CallBack<Member>() {
+            Member newMember;
+            @Override
+            public void onSuccess(Member data) {
+                addMemberFragment(member);
+            }
+
+            @Override
+            public void onFailure(String msg) {
+
+            }
+
+            @Override
+            public void onError() {
+
+            }
+
+            @Override
+            public void onComplete() {
+
+            }
+        });
+
     }
 
     class MemberRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
@@ -229,7 +268,7 @@ public class MemberFraPresent extends BasePresent<MemberView> {
                 MemberDetailHolder memberDetailHolder = new MemberDetailHolder(view, new ItemOnClickListener() {
                     @Override
                     public void onItemClick(View view, int position) {
-
+                        //无需点击事件
                     }
                 });
                 return memberDetailHolder;
@@ -242,12 +281,16 @@ public class MemberFraPresent extends BasePresent<MemberView> {
                     public void onItemClick(View view, int position) {
                         switch (view.getId()) {
                             case R.id.member_title:
+                                //TODO 获取详细帖子信息
+                                addPostFragment(memberPosts.get(position - 1).getPost());
                                 break;
                             case R.id.tag:
                                 break;
                             case R.id.member_id:
+
                                 break;
                             case R.id.member_last_reply:
+                                changeMember(memberPosts.get(position - 1).getLastReply());
                                 break;
                         }
                     }
@@ -261,12 +304,13 @@ public class MemberFraPresent extends BasePresent<MemberView> {
                     public void onItemClick(View view, int position) {
                         switch (view.getId()) {
                             case R.id.member_replied_created_name:
+                                changeMember(memberReplies.get(position - memberPosts.size() - 1).getRepliedCreatedMember());
                                 break;
                             case R.id.member_replied_node:
                                 break;
                             case R.id.member_replied_title:
-                                break;
-                            case R.id.member_replied_time:
+                                //TODO 帖子具体信息
+                                addPostFragment(memberReplies.get(position - memberPosts.size() - 1).repliedPost);
                                 break;
                         }
                     }
@@ -292,10 +336,10 @@ public class MemberFraPresent extends BasePresent<MemberView> {
             } else if (holder instanceof MemberPostHolder) {
                 MemberPost memberPost = memberPosts.get(position - 1);
                 MemberPostHolder memberPostHolder = (MemberPostHolder) holder;
-                memberPostHolder.memberTitle.setText(memberPost.getTitle());
+                memberPostHolder.memberTitle.setText(memberPost.getPost().getTitle());
                 memberPostHolder.tag.setText(memberPost.getNode());
                 memberPostHolder.memberName.setText(member.getUsername());
-                memberPostHolder.memberLastReply.setText(memberPost.getLastReply());
+                memberPostHolder.memberLastReply.setText(memberPost.getLastReply().getUsername());
                 memberPostHolder.time.setText(memberPost.getTimeAndLast());
             } else if (holder instanceof MemberReplyHolder) {
                 MemberReply memberReply = memberReplies.get(position - memberPosts.size());

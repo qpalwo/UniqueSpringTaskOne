@@ -4,21 +4,24 @@ import java.io.Serializable;
 
 public class MemberPost implements Serializable{
 
-    String Title;
+
+    Post post;
 
     String TimeAndLast;
 
     String Node;
 
-    String LastReply;
+    Member LastReply;
 
-    public String getTitle() {
-        return Title;
+
+    public Post getPost() {
+        return post;
     }
 
-    public void setTitle(String title) {
-        Title = title;
+    public void setPost(Post post) {
+        this.post = post;
     }
+
 
     public String getTimeAndLast() {
         return TimeAndLast;
@@ -36,11 +39,11 @@ public class MemberPost implements Serializable{
         Node = node;
     }
 
-    public String getLastReply() {
+    public Member getLastReply() {
         return LastReply;
     }
 
-    public void setLastReply(String lastReply) {
+    public void setLastReply(Member lastReply) {
         LastReply = lastReply;
     }
 }
