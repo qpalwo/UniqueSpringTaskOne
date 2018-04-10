@@ -232,6 +232,7 @@ class ListFraPresent extends BasePresent<ListView> {
                         case R.id.post_lab:
                             break;
                         case R.id.post_author:
+                            //TODO 需要好好检查
                             addMemberFragment(posts.get(position).getMember());
                             break;
                         case R.id.post_last_reply:

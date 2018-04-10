@@ -334,6 +334,7 @@ public class MemberFraPresent extends BasePresent<MemberView> {
                         .load(member.getAvatar_normal())
                         .into(memberDetailHolder.memberImg);
             } else if (holder instanceof MemberPostHolder) {
+                //TODO position的判断还需要调整
                 MemberPost memberPost = memberPosts.get(position - 1);
                 MemberPostHolder memberPostHolder = (MemberPostHolder) holder;
                 memberPostHolder.memberTitle.setText(memberPost.getPost().getTitle());
@@ -342,9 +343,10 @@ public class MemberFraPresent extends BasePresent<MemberView> {
                 memberPostHolder.memberLastReply.setText(memberPost.getLastReply().getUsername());
                 memberPostHolder.time.setText(memberPost.getTimeAndLast());
             } else if (holder instanceof MemberReplyHolder) {
-                MemberReply memberReply = memberReplies.get(position - memberPosts.size());
+                MemberReply memberReply = memberReplies.get(position - memberPosts.size() - 1);
                 MemberReplyHolder memberReplyHolder = (MemberReplyHolder) holder;
-                memberReplyHolder.memberRepliedNode.setText(memberReply.repliedPost.getNode().getName());
+                //TODO  添加详细的帖子信息
+                //memberReplyHolder.memberRepliedNode.setText(memberReply.repliedPost.getNode().getName());
                 memberReplyHolder.memberRepliedCreatedName.setText(memberReply.repliedCreatedMember.getUsername());
                 memberReplyHolder.memberRepliedTime.setText(memberReply.repliedTime);
                 memberReplyHolder.memberRepliedTitle.setText(memberReply.repliedPost.getTitle());

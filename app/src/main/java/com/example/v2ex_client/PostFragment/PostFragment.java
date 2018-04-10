@@ -53,8 +53,14 @@ public class PostFragment extends BaseFragment implements PostView {
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
         postRecycler.setLayoutManager(layoutManager);
         postFraPresent.setAdapter();
-        postFraPresent.refreshData();
+        //postFraPresent.refreshData();
         return rootView;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        postFraPresent.refreshData();
     }
 
 //    public void initPostContent(String createTime){

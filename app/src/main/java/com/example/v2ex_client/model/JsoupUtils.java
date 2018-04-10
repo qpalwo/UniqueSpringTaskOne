@@ -8,6 +8,7 @@ import com.example.v2ex_client.base.CallBack;
 import com.example.v2ex_client.model.Bean.Member;
 import com.example.v2ex_client.model.Bean.MemberPost;
 import com.example.v2ex_client.model.Bean.MemberReply;
+import com.example.v2ex_client.model.Bean.Post;
 import com.example.v2ex_client.model.Bean.Reply;
 import com.google.gson.Gson;
 
@@ -136,7 +137,26 @@ public class JsoupUtils {
         jsoupAsyncTask.setCallBack(new CallBack<Document>() {
             @Override
             public void onSuccess(Document data) {
-
+                List<MemberPost> memberPosts = new ArrayList<>();
+                Elements posts = data.getElementsByClass("item_title");
+                Elements nodes = data.getElementsByClass("node");
+                Elements timeAndLasts = data.getElementsByClass("small fade").select("strong");
+                //TODO 换一个上限，这个会越界
+                for(int i = 0; i < posts.size() - 1; i++){
+                    MemberPost memberPost = new MemberPost();
+                    Post post = new Post();
+                    Member lastReply = new Member();
+                    post.setTitle(posts.get(i).text());
+                    post.setUrl("https://www.v2ex.com" + posts.get(i).select("a").attr("href"));
+                    lastReply.setUsername(timeAndLasts.get(2 * i + 1).text());
+                    lastReply.setUrl("https://www.v2ex.com" + timeAndLasts.get(2 * i + 1).select("a").attr("href"));
+                    memberPost.setNode(nodes.get(i).text());
+                    memberPost.setTimeAndLast(timeAndLasts.get(2 * i).text());
+                    memberPost.setPost(post);
+                    memberPost.setLastReply(lastReply);
+                    memberPosts.add(memberPost);
+                }
+                callBack.onSuccess(memberPosts);
             }
 
             @Override
@@ -151,7 +171,7 @@ public class JsoupUtils {
 
             @Override
             public void onComplete() {
-
+                callBack.onComplete();
             }
         });
         jsoupAsyncTask.execute(address);
@@ -163,7 +183,25 @@ public class JsoupUtils {
         jsoupAsyncTask.setCallBack(new CallBack<Document>() {
             @Override
             public void onSuccess(Document data) {
-
+                List<MemberReply> memberReplies = new ArrayList<>();
+                Elements repliedContents = data.getElementsByClass("reply_content");
+                Elements repliedTimes = data.getElementsByClass("fade");
+                Elements repliedPosts = data.getElementsByClass("gray");
+                for (int i = 0; i < repliedContents.size(); i++){
+                    MemberReply memberReply = new MemberReply();
+                    Member member = new Member();
+                    Post post = new Post();
+                    member.setUsername(repliedPosts.get(i + 2).select("a").get(0).text());
+                    member.setUrl("https://www.v2ex.com" + repliedPosts.get(i + 2).select("a").get(0).attr("href"));
+                    post.setUrl("https://www.v2ex.com" + repliedPosts.get(i + 2).select("a").get(2).attr("href"));
+                    post.setTitle(repliedPosts.get(i + 2).select("a").get(2).text());
+                    memberReply.setRepliedContent(repliedContents.get(i).html());
+                    memberReply.setRepliedTime(repliedTimes.get(i).text());
+                    memberReply.setRepliedCreatedMember(member);
+                    memberReply.setRepliedPost(post);
+                    memberReplies.add(memberReply);
+                }
+                callBack.onSuccess(memberReplies);
             }
 
             @Override
@@ -178,7 +216,7 @@ public class JsoupUtils {
 
             @Override
             public void onComplete() {
-
+                callBack.onComplete();
             }
         });
         jsoupAsyncTask.execute(address);
@@ -188,7 +226,7 @@ public class JsoupUtils {
     public void getMemberInfo(String name, final CallBack<Member> callBack){
         HttpConnectionUtils.getResponse("GET",
                 null,
-                HttpConnectionUtils.V2EX_USER + "name=" + name,
+                HttpConnectionUtils.V2EX_USER + "username=" + name,
                 new CallBack<String>() {
                     @Override
                     public void onSuccess(String data) {

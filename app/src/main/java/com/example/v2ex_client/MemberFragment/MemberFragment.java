@@ -71,7 +71,7 @@ public class MemberFragment extends BaseFragment implements MemberView {
         postFragment.setArguments(bundle);
         FragmentManager childFragmentManager = getChildFragmentManager();
         FragmentTransaction transaction = childFragmentManager.beginTransaction();
-        transaction.add(R.id.fragment_container, postFragment)
+        transaction.add(R.id.member_fragment, postFragment)
                 .addToBackStack("post")
                 .commit();
 
@@ -85,7 +85,7 @@ public class MemberFragment extends BaseFragment implements MemberView {
         memberFragment.setArguments(bundle);
         FragmentManager childFragmentManager = getChildFragmentManager();
         FragmentTransaction transaction = childFragmentManager.beginTransaction();
-        transaction.add(R.id.post_fragment, memberFragment)
+        transaction.add(R.id.member_fragment, memberFragment)
                 .addToBackStack("member")
                 .commit();
     }

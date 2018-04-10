@@ -155,7 +155,7 @@ public class ListFragment extends BaseFragment implements ListView {
         memberFragment.setArguments(bundle);
         FragmentManager childFragmentManager = getChildFragmentManager();
         FragmentTransaction transaction = childFragmentManager.beginTransaction();
-        transaction.add(R.id.post_fragment, memberFragment)
+        transaction.add(R.id.fragment_container, memberFragment)
                 .addToBackStack("member")
                 .commit();
     }
