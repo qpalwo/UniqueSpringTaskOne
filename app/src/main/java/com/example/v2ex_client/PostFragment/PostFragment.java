@@ -7,6 +7,7 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Html;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -53,27 +54,15 @@ public class PostFragment extends BaseFragment implements PostView {
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
         postRecycler.setLayoutManager(layoutManager);
         postFraPresent.setAdapter();
-        //postFraPresent.refreshData();
+        postFraPresent.refreshData();
         return rootView;
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        postFraPresent.refreshData();
+       // postFraPresent.refreshData();
     }
-
-//    public void initPostContent(String createTime){
-//        //爬到的数据中时间和点击次数在一起，可以用一个textview显示，为了再试试正则表达式，将其分开
-//        //2days later  算了正则坑太深，没踩出来。下次再说
-//        postTitle.setText(post.getTitle());
-//        creatTime.setText(createTime);
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-//            content.setText(Html.fromHtml(post.getContent_rendered(), Html.FROM_HTML_MODE_LEGACY));
-//        } else {
-//            content.setText(post.getContent());
-//        }
-//    }
 
     public RecyclerView getPostRecycler() {
         return postRecycler;

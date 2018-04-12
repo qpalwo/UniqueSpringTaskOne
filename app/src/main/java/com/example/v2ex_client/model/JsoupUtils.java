@@ -8,6 +8,7 @@ import com.example.v2ex_client.base.CallBack;
 import com.example.v2ex_client.model.Bean.Member;
 import com.example.v2ex_client.model.Bean.MemberPost;
 import com.example.v2ex_client.model.Bean.MemberReply;
+import com.example.v2ex_client.model.Bean.Node;
 import com.example.v2ex_client.model.Bean.Post;
 import com.example.v2ex_client.model.Bean.Reply;
 import com.google.gson.Gson;
@@ -100,7 +101,7 @@ public class JsoupUtils {
     }
 
     //获取帖子的点击次数
-    public void getPostCheckedTimes(String address, final CallBack<String> callBack){
+    public void getPostCheckedTimes(String address, final CallBack<String> callBack) {
         JsoupAsyncTask jsoupAsyncTask = new JsoupAsyncTask();
         jsoupAsyncTask.setCallBack(new CallBack<Document>() {
             @Override
@@ -132,26 +133,31 @@ public class JsoupUtils {
     }
 
     //获取用户 页面用户创建的主题
-    public void getMemberPosts(String address, final CallBack<List<MemberPost>> callBack){
+    public void getMemberPosts(String address, final CallBack<List<MemberPost>> callBack) {
         JsoupAsyncTask jsoupAsyncTask = new JsoupAsyncTask();
         jsoupAsyncTask.setCallBack(new CallBack<Document>() {
             @Override
             public void onSuccess(Document data) {
                 List<MemberPost> memberPosts = new ArrayList<>();
+//                try{
+//                    Elements posts = data.getElementsByClass("item_title");
+//                }catch (Exception e){
+//                    e.getMessage();
+//                }
                 Elements posts = data.getElementsByClass("item_title");
                 Elements nodes = data.getElementsByClass("node");
                 Elements timeAndLasts = data.getElementsByClass("small fade").select("strong");
                 //TODO 换一个上限，这个会越界
-                for(int i = 0; i < posts.size() - 1; i++){
+                for (int i = 0; i < posts.size() - 1; i++) {
                     MemberPost memberPost = new MemberPost();
                     Post post = new Post();
                     Member lastReply = new Member();
                     post.setTitle(posts.get(i).text());
                     post.setUrl("https://www.v2ex.com" + posts.get(i).select("a").attr("href"));
-                    lastReply.setUsername(timeAndLasts.get(2 * i + 1).text());
-                    lastReply.setUrl("https://www.v2ex.com" + timeAndLasts.get(2 * i + 1).select("a").attr("href"));
+                    lastReply.setUsername(timeAndLasts.select("a").get(2 * i + 1).text());
+                    lastReply.setUrl("https://www.v2ex.com" + timeAndLasts.select("a").get(2 * i + 1).attr("href"));
                     memberPost.setNode(nodes.get(i).text());
-                    memberPost.setTimeAndLast(timeAndLasts.get(2 * i).text());
+                    memberPost.setTimeAndLast(timeAndLasts.select("a").get(2 * i).text());
                     memberPost.setPost(post);
                     memberPost.setLastReply(lastReply);
                     memberPosts.add(memberPost);
@@ -178,7 +184,7 @@ public class JsoupUtils {
     }
 
     //获取用户页面用户回复的主题
-    public void getMemberReplies(String address, final CallBack<List<MemberReply>> callBack){
+    public void getMemberReplies(String address, final CallBack<List<MemberReply>> callBack) {
         JsoupAsyncTask jsoupAsyncTask = new JsoupAsyncTask();
         jsoupAsyncTask.setCallBack(new CallBack<Document>() {
             @Override
@@ -187,19 +193,27 @@ public class JsoupUtils {
                 Elements repliedContents = data.getElementsByClass("reply_content");
                 Elements repliedTimes = data.getElementsByClass("fade");
                 Elements repliedPosts = data.getElementsByClass("gray");
-                for (int i = 0; i < repliedContents.size(); i++){
-                    MemberReply memberReply = new MemberReply();
-                    Member member = new Member();
-                    Post post = new Post();
-                    member.setUsername(repliedPosts.get(i + 2).select("a").get(0).text());
-                    member.setUrl("https://www.v2ex.com" + repliedPosts.get(i + 2).select("a").get(0).attr("href"));
-                    post.setUrl("https://www.v2ex.com" + repliedPosts.get(i + 2).select("a").get(2).attr("href"));
-                    post.setTitle(repliedPosts.get(i + 2).select("a").get(2).text());
-                    memberReply.setRepliedContent(repliedContents.get(i).html());
-                    memberReply.setRepliedTime(repliedTimes.get(i).text());
-                    memberReply.setRepliedCreatedMember(member);
-                    memberReply.setRepliedPost(post);
-                    memberReplies.add(memberReply);
+                if (repliedContents.size() > 0) {
+
+                    //确定回帖开始的位置
+                    int k = 0;
+                    while (repliedPosts.get(k).text().indexOf("回") != 0){
+                        k++;
+                    }
+                    for (int i = 0; i < repliedContents.size(); i++) {
+                        MemberReply memberReply = new MemberReply();
+                        Member member = new Member();
+                        Post post = new Post();
+                        member.setUsername(repliedPosts.get(i + k).select("a").get(0).text());
+                        member.setUrl("https://www.v2ex.com" + repliedPosts.get(i + k).select("a").get(0).attr("href"));
+                        post.setUrl("https://www.v2ex.com" + repliedPosts.get(i + k).select("a").get(2).attr("href"));
+                        post.setTitle(repliedPosts.get(i + k).select("a").get(2).text());
+                        memberReply.setRepliedContent(repliedContents.get(i).html());
+                        memberReply.setRepliedTime(repliedTimes.get(i).text());
+                        memberReply.setRepliedCreatedMember(member);
+                        memberReply.setRepliedPost(post);
+                        memberReplies.add(memberReply);
+                    }
                 }
                 callBack.onSuccess(memberReplies);
             }
@@ -223,7 +237,7 @@ public class JsoupUtils {
     }
 
     //根据api获取用户具体信息
-    public void getMemberInfo(String name, final CallBack<Member> callBack){
+    public void getMemberInfo(String name, final CallBack<Member> callBack) {
         HttpConnectionUtils.getResponse("GET",
                 null,
                 HttpConnectionUtils.V2EX_USER + "username=" + name,
@@ -268,6 +282,137 @@ public class JsoupUtils {
 
                     }
                 });
+    }
+
+    //跟据api获取node信息
+    public void getNodeInfo(final String name, final CallBack<Node> callBack){
+        HttpConnectionUtils.getResponse(
+                "GET",
+                null,
+                HttpConnectionUtils.V2EX_NODE + "name=" + name,
+                new CallBack<String>() {
+                    @Override
+                    public void onSuccess(String data) {
+                        ResponseHandle.nodeHandler(data, new CallBack<Node>() {
+                            @Override
+                            public void onSuccess(Node data) {
+                                callBack.onSuccess(data);
+                            }
+
+                            @Override
+                            public void onFailure(String msg) {
+
+                            }
+
+                            @Override
+                            public void onError() {
+
+                            }
+
+                            @Override
+                            public void onComplete() {
+                                callBack.onComplete();
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onFailure(String msg) {
+
+                    }
+
+                    @Override
+                    public void onError() {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });
+    }
+
+    //根据地址获取帖子详细信息
+    public void getPostInfo(String address, final CallBack<Post> callBack) {
+        JsoupAsyncTask jsoupAsyncTask = new JsoupAsyncTask();
+        jsoupAsyncTask.setCallBack(new CallBack<Document>() {
+            @Override
+            public void onSuccess(Document data) {
+                final Post post = new Post();
+                Elements title = data.getElementsByClass("header").select("h1");
+                Elements content = data.getElementsByClass("topic_content");
+                Elements member = data.getElementsByClass("gray");
+                Elements node = data.getElementsByClass("header");
+                String member_name = member.get(0).text();
+                String node_name = node.select("a").get(1).text();
+                getMemberInfo(member_name, new CallBack<Member>() {
+                    @Override
+                    public void onSuccess(Member data) {
+                        post.setMember(data);
+                    }
+
+                    @Override
+                    public void onFailure(String msg) {
+
+                    }
+
+                    @Override
+                    public void onError() {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });
+                getNodeInfo(node_name, new CallBack<Node>() {
+                    @Override
+                    public void onSuccess(Node data) {
+                        post.setNode(data);
+                    }
+
+                    @Override
+                    public void onFailure(String msg) {
+
+                    }
+
+                    @Override
+                    public void onError() {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });
+                post.setTitle(title.text());
+                post.setContent(content.html());
+                post.setContent_rendered(content.html());
+                while (post.getMember() != null){
+                    callBack.onSuccess(post);
+                }
+            }
+
+            @Override
+            public void onFailure(String msg) {
+
+            }
+
+            @Override
+            public void onError() {
+
+            }
+
+            @Override
+            public void onComplete() {
+
+            }
+        });
+        jsoupAsyncTask.execute(address);
+
     }
 
     //获取Document

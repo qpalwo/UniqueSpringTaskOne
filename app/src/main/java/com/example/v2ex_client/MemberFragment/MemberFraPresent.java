@@ -2,7 +2,9 @@ package com.example.v2ex_client.MemberFragment;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.support.v7.util.DiffUtil;
 import android.support.v7.widget.RecyclerView;
+import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,6 +12,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.example.v2ex_client.PostFragment.PostFraPresent;
 import com.example.v2ex_client.R;
 import com.example.v2ex_client.base.BasePresent;
 import com.example.v2ex_client.base.CallBack;
@@ -17,10 +20,10 @@ import com.example.v2ex_client.model.Bean.Member;
 import com.example.v2ex_client.model.Bean.MemberPost;
 import com.example.v2ex_client.model.Bean.MemberReply;
 import com.example.v2ex_client.model.Bean.Post;
+import com.example.v2ex_client.model.Bean.Reply;
 import com.example.v2ex_client.model.DataUtil;
 import com.example.v2ex_client.model.JsoupUtils;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
@@ -48,12 +51,12 @@ public class MemberFraPresent extends BasePresent<MemberView> {
         }
     }
 
-    public void refreshData(){
+    public void refreshData() {
         JsoupUtils jsoup = new JsoupUtils();
         jsoup.getMemberPosts(member.getUrl(), new CallBack<List<MemberPost>>() {
             @Override
             public void onSuccess(List<MemberPost> data) {
-                if(isViewAttached()){
+                if (isViewAttached()) {
                     MemberRecyclerAdapter memberRecyclerAdapter = (MemberRecyclerAdapter) getView()
                             .getMemberRecycler().getAdapter();
                     memberRecyclerAdapter.changePostData(data);
@@ -79,8 +82,8 @@ public class MemberFraPresent extends BasePresent<MemberView> {
         jsoup.getMemberReplies(member.getUrl(), new CallBack<List<MemberReply>>() {
             @Override
             public void onSuccess(List<MemberReply> data) {
-                if (isViewAttached()){
-                    MemberRecyclerAdapter memberRecyclerAdapter = (MemberRecyclerAdapter)getView()
+                if (isViewAttached()) {
+                    MemberRecyclerAdapter memberRecyclerAdapter = (MemberRecyclerAdapter) getView()
                             .getMemberRecycler().getAdapter();
                     memberRecyclerAdapter.changeReplyData(data);
                 }
@@ -110,24 +113,49 @@ public class MemberFraPresent extends BasePresent<MemberView> {
         }
     }
 
-    private void addMemberFragment(Member member){
-        if (isViewAttached()){
+    private void addMemberFragment(Member member) {
+        if (isViewAttached()) {
             getView().addMemberFragment(member);
         }
     }
-
 
     private interface ItemOnClickListener {
         void onItemClick(View view, int position);
     }
 
-    private void changeMember(final Member member){
+    private void detailMember(final Member member) {
         JsoupUtils jsoupUtils = new JsoupUtils();
         jsoupUtils.getMemberInfo(member.getUsername(), new CallBack<Member>() {
-            Member newMember;
-            @Override
+               @Override
             public void onSuccess(Member data) {
-                addMemberFragment(member);
+                addMemberFragment(data);
+            }
+
+            @Override
+            public void onFailure(String msg) {
+                getView().showToast(msg);
+            }
+
+            @Override
+            public void onError() {
+
+            }
+
+            @Override
+            public void onComplete() {
+
+            }
+        });
+
+    }
+
+    private void detailPost(final Post post){
+        JsoupUtils jsoupUtils = new JsoupUtils();
+        jsoupUtils.getPostInfo(post.getUrl(), new CallBack<Post>() {
+            @Override
+            public void onSuccess(Post data) {
+                //TODO 更新逻辑
+                addPostFragment(data);
             }
 
             @Override
@@ -145,7 +173,6 @@ public class MemberFraPresent extends BasePresent<MemberView> {
 
             }
         });
-
     }
 
     class MemberRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
@@ -239,23 +266,50 @@ public class MemberFraPresent extends BasePresent<MemberView> {
 
         }
 
+        class MemberStateHolder extends RecyclerView.ViewHolder {
+
+            @BindView(R.id.member_textview)
+            TextView textView;
+
+            public MemberStateHolder(View itemView) {
+                super(itemView);
+                ButterKnife.bind(this.itemView);
+            }
+        }
+
         MemberRecyclerAdapter(Context context, Member member) {
             this.context = context;
             this.member = member;
-            memberPosts = new ArrayList<>();
-            memberReplies = new ArrayList<>();
+            //memberPosts = new ArrayList<>();
+            //memberReplies = new ArrayList<>();
         }
 
         @Override
         public int getItemViewType(int position) {
             if (position == 0) {
                 return 0;//  用户信息
-            } else if (position > 0 && memberPosts.size() > 0) {
-                return 1;//  用户帖子
-            } else if (position > memberPosts.size()) {
-                return 2;//  用户回复
+            } else if (position > 0 && memberPosts != null) {//用户有创建的主题
+                if (position < memberPosts.size() + 1) {
+                    return 1;//  用户帖子
+                } else {
+                    if (memberReplies == null) { //用户无回复的帖子
+                        return 3;
+                    } else { //用户有回复的帖子
+                        return 2;
+                    }
+                }
+            } else if (memberPosts == null) {//用户无创建的主题
+                if (position == 1) {
+                    return 3;
+                } else {
+                    if (memberReplies == null) { //用户无回复
+                        return 3;
+                    } else {  //用户有回复
+                        return 2;
+                    }
+                }
             } else {
-                return 4;
+                return 3;//状态提示
             }
         }
 
@@ -282,7 +336,8 @@ public class MemberFraPresent extends BasePresent<MemberView> {
                         switch (view.getId()) {
                             case R.id.member_title:
                                 //TODO 获取详细帖子信息
-                                addPostFragment(memberPosts.get(position - 1).getPost());
+                                detailPost(memberPosts.get(position - 1).getPost());
+                                //addPostFragment(memberPosts.get(position - 1).getPost());
                                 break;
                             case R.id.tag:
                                 break;
@@ -290,7 +345,7 @@ public class MemberFraPresent extends BasePresent<MemberView> {
 
                                 break;
                             case R.id.member_last_reply:
-                                changeMember(memberPosts.get(position - 1).getLastReply());
+                                detailMember(memberPosts.get(position - 1).getLastReply());
                                 break;
                         }
                     }
@@ -304,59 +359,48 @@ public class MemberFraPresent extends BasePresent<MemberView> {
                     public void onItemClick(View view, int position) {
                         switch (view.getId()) {
                             case R.id.member_replied_created_name:
-                                changeMember(memberReplies.get(position - memberPosts.size() - 1).getRepliedCreatedMember());
+                                detailMember(memberReplies.get(position - memberPosts.size() - 1).getRepliedCreatedMember());
                                 break;
                             case R.id.member_replied_node:
                                 break;
                             case R.id.member_replied_title:
                                 //TODO 帖子具体信息
-                                addPostFragment(memberReplies.get(position - memberPosts.size() - 1).repliedPost);
+                                detailPost(memberPosts.get(position - 1).getPost());
+                                //addPostFragment(memberReplies.get(position - memberPosts.size() - 1).repliedPost);
                                 break;
                         }
                     }
                 });
                 return memberReplyHolder;
             } else {
-                //TODO  用户无回复或者用户无主题时的展示
-                return null;
+                View view = LayoutInflater.from(context).inflate
+                        (R.layout.member_textview_item, parent, false);
+                return new MemberStateHolder(view);
             }
 
         }
 
         @Override
         public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-            if (holder instanceof MemberDetailHolder) {
-                MemberDetailHolder memberDetailHolder = (MemberDetailHolder) holder;
-                memberDetailHolder.memberName.setText(member.getUsername());
-                memberDetailHolder.memberNo.setText("V2EX第" + member.getId() + "号会员");
-                memberDetailHolder.memberTime.setText(DataUtil.convertTimeToFormat(member.getCreated()));
-                Glide.with(context)
-                        .load(member.getAvatar_normal())
-                        .into(memberDetailHolder.memberImg);
-            } else if (holder instanceof MemberPostHolder) {
-                //TODO position的判断还需要调整
-                MemberPost memberPost = memberPosts.get(position - 1);
-                MemberPostHolder memberPostHolder = (MemberPostHolder) holder;
-                memberPostHolder.memberTitle.setText(memberPost.getPost().getTitle());
-                memberPostHolder.tag.setText(memberPost.getNode());
-                memberPostHolder.memberName.setText(member.getUsername());
-                memberPostHolder.memberLastReply.setText(memberPost.getLastReply().getUsername());
-                memberPostHolder.time.setText(memberPost.getTimeAndLast());
-            } else if (holder instanceof MemberReplyHolder) {
-                MemberReply memberReply = memberReplies.get(position - memberPosts.size() - 1);
-                MemberReplyHolder memberReplyHolder = (MemberReplyHolder) holder;
-                //TODO  添加详细的帖子信息
-                //memberReplyHolder.memberRepliedNode.setText(memberReply.repliedPost.getNode().getName());
-                memberReplyHolder.memberRepliedCreatedName.setText(memberReply.repliedCreatedMember.getUsername());
-                memberReplyHolder.memberRepliedTime.setText(memberReply.repliedTime);
-                memberReplyHolder.memberRepliedTitle.setText(memberReply.repliedPost.getTitle());
-                memberReplyHolder.memberReplyContent.setText(memberReply.repliedContent);
-            }
+            viewHolderManager(holder, position);
         }
 
         @Override
         public int getItemCount() {
-            return memberPosts.size() + memberReplies.size() + 1;
+            if (memberPosts == null) {
+                if (memberReplies == null) {
+                    return 1;
+                } else {
+                    return memberReplies.size() + 1;
+                }
+            } else {
+                if (memberReplies == null) {
+                    return memberPosts.size() + 1;
+                } else {
+                    return memberPosts.size() + memberReplies.size() + 1;
+                }
+            }
+
         }
 
         public void addReplyData(List<MemberReply> replies) {
@@ -387,8 +431,54 @@ public class MemberFraPresent extends BasePresent<MemberView> {
             }
         }
 
-
+        private void viewHolderManager(@NonNull RecyclerView.ViewHolder holder, int position) {
+            if (holder instanceof MemberDetailHolder && position == 0) {
+                MemberDetailHolder memberDetailHolder = (MemberDetailHolder) holder;
+                memberDetailHolder.memberName.setText(member.getUsername());
+                memberDetailHolder.memberNo.setText("V2EX第" + member.getId() + "号会员");
+                memberDetailHolder.memberTime.setText(DataUtil.convertTimeToFormat(member.getCreated()));
+                Glide.with(context)
+                        .load(member.getAvatar_normal())
+                        .into(memberDetailHolder.memberImg);
+            } else if (holder instanceof MemberPostHolder) {
+                MemberPost memberPost = memberPosts.get(position - 1);
+                MemberPostHolder memberPostHolder = (MemberPostHolder) holder;
+                memberPostHolder.memberTitle.setText(memberPost.getPost().getTitle());
+                memberPostHolder.tag.setText(memberPost.getNode());
+                memberPostHolder.memberName.setText(member.getUsername());
+                memberPostHolder.memberLastReply.setText(memberPost.getLastReply().getUsername());
+                memberPostHolder.time.setText(memberPost.getTimeAndLast());
+            } else if (position == 1
+                    && holder instanceof MemberStateHolder
+                    && memberPosts == null) {//用户无创建的主题
+                MemberStateHolder memberStateHolder = (MemberStateHolder) holder;
+                memberStateHolder.textView.setText("该用户无创建的主题");
+            } else if (position > 1
+                    && holder instanceof MemberStateHolder
+                    && memberReplies == null) {//用户无回复内容
+                MemberStateHolder memberStateHolder = (MemberStateHolder) holder;
+                memberStateHolder.textView.setText("该用户无回复");
+            } else if (holder instanceof MemberReplyHolder) {
+                if (memberPosts == null) {
+                    MemberReply memberReply = memberReplies.get(position - 2);
+                    MemberReplyHolder memberReplyHolder = (MemberReplyHolder) holder;
+                    detailPost(memberReply.repliedPost);
+                    //memberReplyHolder.memberRepliedNode.setText(memberReply.repliedPost.getNode().getName());
+                    memberReplyHolder.memberRepliedCreatedName.setText(memberReply.repliedCreatedMember.getUsername());
+                    memberReplyHolder.memberRepliedTime.setText(memberReply.repliedTime);
+                    memberReplyHolder.memberRepliedTitle.setText(memberReply.repliedPost.getTitle());
+                    memberReplyHolder.memberReplyContent.setText(Html.fromHtml(memberReply.repliedContent));
+                } else {
+                    MemberReply memberReply = memberReplies.get(position - memberPosts.size() - 1);
+                    MemberReplyHolder memberReplyHolder = (MemberReplyHolder) holder;
+                    detailPost(memberReply.repliedPost);
+                    //memberReplyHolder.memberRepliedNode.setText(memberReply.repliedPost.getNode().getName());
+                    memberReplyHolder.memberRepliedCreatedName.setText(memberReply.repliedCreatedMember.getUsername());
+                    memberReplyHolder.memberRepliedTime.setText(memberReply.repliedTime);
+                    memberReplyHolder.memberRepliedTitle.setText(memberReply.repliedPost.getTitle());
+                    memberReplyHolder.memberReplyContent.setText(Html.fromHtml(memberReply.repliedContent));
+                }
+            }
+        }
     }
-
-
 }

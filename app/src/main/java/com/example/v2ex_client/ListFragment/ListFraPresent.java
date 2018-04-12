@@ -2,6 +2,7 @@ package com.example.v2ex_client.ListFragment;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.support.v7.util.DiffUtil;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -20,6 +21,7 @@ import com.example.v2ex_client.model.Bean.Node;
 import com.example.v2ex_client.model.Bean.Post;
 import com.example.v2ex_client.model.DataUtil;
 import com.example.v2ex_client.model.HttpConnectionUtils;
+import com.example.v2ex_client.model.JsoupUtils;
 import com.example.v2ex_client.model.ResponseHandle;
 
 import java.util.ArrayList;
@@ -117,6 +119,32 @@ class ListFraPresent extends BasePresent<ListView> {
 
     private interface ItemOnClickListener {
         void onItemClick(View view, int position);
+    }
+
+    private void detailMember(final Member member) {
+        JsoupUtils jsoupUtils = new JsoupUtils();
+        jsoupUtils.getMemberInfo(member.getUsername(), new CallBack<Member>() {
+            @Override
+            public void onSuccess(Member data) {
+                addMemberFragment(data);
+            }
+
+            @Override
+            public void onFailure(String msg) {
+                getView().showToast(msg);
+            }
+
+            @Override
+            public void onError() {
+
+            }
+
+            @Override
+            public void onComplete() {
+
+            }
+        });
+
     }
 
     private class NodeItemAdapter extends RecyclerView.Adapter<NodeItemAdapter.ViewHolder> {
@@ -232,8 +260,7 @@ class ListFraPresent extends BasePresent<ListView> {
                         case R.id.post_lab:
                             break;
                         case R.id.post_author:
-                            //TODO 需要好好检查
-                            addMemberFragment(posts.get(position).getMember());
+                            detailMember(posts.get(position).getMember());
                             break;
                         case R.id.post_last_reply:
                            // addMemberFragment();
@@ -250,10 +277,6 @@ class ListFraPresent extends BasePresent<ListView> {
         @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
             Post post = posts.get(position);
-            String istrurl = post.getMember().getAvatar_normal();
-            if (null == holder || null == istrurl || istrurl.equals("")) {
-                return;
-            }
             holder.postTitle.setText(post.getTitle());
             holder.postAuthor.setText(post.getMember().getUsername());
             holder.postLab.setText(post.getNode().getName());
@@ -285,4 +308,5 @@ class ListFraPresent extends BasePresent<ListView> {
         }
 
     }
+
 }

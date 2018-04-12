@@ -1,10 +1,14 @@
 package com.example.v2ex_client.PostFragment;
 
 import android.content.Context;
+import android.os.Build;
 import android.support.annotation.NonNull;
+import android.support.v7.util.DiffUtil;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
+import android.text.Editable;
 import android.text.Html;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,7 +22,10 @@ import com.example.v2ex_client.base.CallBack;
 import com.example.v2ex_client.model.Bean.Member;
 import com.example.v2ex_client.model.Bean.Post;
 import com.example.v2ex_client.model.Bean.Reply;
+import com.example.v2ex_client.model.HtmlAnalyUtil;
 import com.example.v2ex_client.model.JsoupUtils;
+
+import org.xml.sax.XMLReader;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -113,8 +120,8 @@ public class PostFraPresent extends BasePresent<PostView> {
         }
     }
 
-    private void addMemberFragment(Member member){
-        if (isViewAttached()){
+    private void addMemberFragment(Member member) {
+        if (isViewAttached()) {
             getView().addMemberFragment(member);
         }
     }
@@ -129,6 +136,7 @@ public class PostFraPresent extends BasePresent<PostView> {
         private Post post;
         private String checkedAndTime;
         private Context context;
+        private HtmlAnalyUtil htmlAnalyUtil;
 
         class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
@@ -190,6 +198,7 @@ public class PostFraPresent extends BasePresent<PostView> {
             this.context = context;
             this.post = post;
             this.replies = new ArrayList<>();
+            htmlAnalyUtil = new HtmlAnalyUtil(getView().getContext());
         }
 
         @Override
@@ -256,28 +265,36 @@ public class PostFraPresent extends BasePresent<PostView> {
             if (holder instanceof ViewHolder) {
                 ViewHolder viewHolder = (ViewHolder) holder;
                 Reply reply = replies.get(position - 1);
-                String istrurl = reply.getReplyMember().getAvatar_normal();
-//                if (null == holder || null == istrurl || istrurl.equals("")) {
-//                    return;
-//                }
                 if (reply != null) {
                     viewHolder.userName.setText(reply.getReplyMember().getUsername());
                     viewHolder.postTime.setText(reply.getTime());
                     viewHolder.postReplyNumber.setText(reply.getReplyNumber());
-                    viewHolder.replyContent.setText(reply.getReplyContent());
+                    viewHolder.replyContent.setText(Html.fromHtml(reply.getReplyContent()));
                     Glide.with(context)
                             .load(reply.getReplyMember().getAvatar_normal())
                             .into(viewHolder.postImg);
                 }
             } else if (holder instanceof PostDetailViewHolder) {
                 PostDetailViewHolder viewHolder = (PostDetailViewHolder) holder;
-                if (post != null && checkedAndTime != null) {
-                    viewHolder.content.setText(Html.fromHtml(post.getContent_rendered()));
-                    viewHolder.creatTimeChecked.setText(checkedAndTime);
+                if (post != null) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        viewHolder.content.setText(Html.fromHtml(post.getContent_rendered(),
+                                Html.FROM_HTML_MODE_LEGACY,
+                                htmlAnalyUtil.getImageGetter(),
+                                null));
+                        Log.d("*******12", "onBindViewHolder: " + post.getContent());
+                    }else {
+                        viewHolder.content.setText(Html.fromHtml(post.getContent_rendered(),
+                                htmlAnalyUtil.getImageGetter(),
+                                null));
+                    }
+                    if (checkedAndTime != null) {
+                        viewHolder.creatTimeChecked.setText(checkedAndTime);
+                    }
                     viewHolder.postTitle.setText(post.getTitle());
                     viewHolder.userName.setText(post.getMember().getUsername());
                     Glide.with(context)
-                            .load(post.getMember().getAvatar_normal())
+                            .load("https:" + post.getMember().getAvatar_normal())
                             .into(viewHolder.userImg);
                 }
             }
@@ -286,7 +303,7 @@ public class PostFraPresent extends BasePresent<PostView> {
 
         @Override
         public int getItemCount() {
-            return replies.size();
+            return replies.size() + 1;
         }
 
         public void changeData(List<Reply> list) {
@@ -312,4 +329,5 @@ public class PostFraPresent extends BasePresent<PostView> {
         }
 
     }
+
 }

@@ -23,6 +23,7 @@ public class HttpConnectionUtils {
     public static final String V2EX_HOT = "https://www.v2ex.com/api/topics/hot.json";
     public static final String V2EX_LATEST = "https://www.v2ex.com/api/topics/latest.json";
     public static final String V2EX_USER = "https://www.v2ex.com/api/members/show.json?";
+    public static final String V2EX_NODE = "https://www.v2ex.com/api/nodes/show.json?";
 
     public static void getResponse(final String type, final String request, final String address, final CallBack<String> callBack){
 
