@@ -50,6 +50,7 @@ dependencies {
    // implementation 'com.android.support:support-annotations:27.1.0'
    // compile(name:'materialviewpager-1.2.3', ext:'aar')
     compile files('libs/materialviewpager-1.2.3-sources.jar')
+    implementation 'com.makeramen:roundedimageview:2.2.1'
 }
 
 repositories {

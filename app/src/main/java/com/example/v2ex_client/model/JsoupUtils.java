@@ -21,6 +21,7 @@ import org.jsoup.select.Elements;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -137,32 +138,41 @@ public class JsoupUtils {
         JsoupAsyncTask jsoupAsyncTask = new JsoupAsyncTask();
         jsoupAsyncTask.setCallBack(new CallBack<Document>() {
             @Override
-            public void onSuccess(Document data) {
-                List<MemberPost> memberPosts = new ArrayList<>();
-//                try{
-//                    Elements posts = data.getElementsByClass("item_title");
-//                }catch (Exception e){
-//                    e.getMessage();
-//                }
-                Elements posts = data.getElementsByClass("item_title");
-                Elements nodes = data.getElementsByClass("node");
-                Elements timeAndLasts = data.getElementsByClass("small fade").select("strong");
-                //TODO 换一个上限，这个会越界
-                for (int i = 0; i < posts.size() - 1; i++) {
-                    MemberPost memberPost = new MemberPost();
-                    Post post = new Post();
-                    Member lastReply = new Member();
-                    post.setTitle(posts.get(i).text());
-                    post.setUrl("https://www.v2ex.com" + posts.get(i).select("a").attr("href"));
-                    lastReply.setUsername(timeAndLasts.select("a").get(2 * i + 1).text());
-                    lastReply.setUrl("https://www.v2ex.com" + timeAndLasts.select("a").get(2 * i + 1).attr("href"));
-                    memberPost.setNode(nodes.get(i).text());
-                    memberPost.setTimeAndLast(timeAndLasts.select("a").get(2 * i).text());
-                    memberPost.setPost(post);
-                    memberPost.setLastReply(lastReply);
-                    memberPosts.add(memberPost);
-                }
-                callBack.onSuccess(memberPosts);
+            public void onSuccess(final Document data) {
+                final Handler handler = new Handler();
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        final List<MemberPost> memberPosts = new ArrayList<>();
+                        Elements posts = data.getElementsByClass("item_title");
+                        Elements nodes = data.getElementsByClass("node");
+                        Elements timeAndLasts = data.getElementsByClass("small fade").select("strong");
+                        //TODO 换一个上限，这个会越界
+                        //TODO 从用户信息页面打开帖子可能会ANR 暂时未发现原因
+                        for (int i = 0; i < posts.size(); i++) {
+                            MemberPost memberPost = new MemberPost();
+                            Post post = new Post();
+                            Member lastReply = new Member();
+                            post.setTitle(posts.get(i).text());
+                            post.setUrl("https://www.v2ex.com" + posts.get(i).select("a").attr("href"));
+                            lastReply.setUsername(timeAndLasts.select("a").get(( 2 * i ) + 1).text());
+                            lastReply.setUrl("https://www.v2ex.com" + timeAndLasts.select("a").get(2 * i + 1).attr("href"));
+                            memberPost.setNode(nodes.get(i).text());
+                            memberPost.setTimeAndLast(timeAndLasts.select("a").get(2 * i).text());
+                            memberPost.setPost(post);
+                            memberPost.setLastReply(lastReply);
+                            memberPosts.add(memberPost);
+                        }
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                callBack.onSuccess(memberPosts);
+                            }
+                        });
+
+                    }
+                }).start();
+
             }
 
             @Override
@@ -188,34 +198,45 @@ public class JsoupUtils {
         JsoupAsyncTask jsoupAsyncTask = new JsoupAsyncTask();
         jsoupAsyncTask.setCallBack(new CallBack<Document>() {
             @Override
-            public void onSuccess(Document data) {
-                List<MemberReply> memberReplies = new ArrayList<>();
-                Elements repliedContents = data.getElementsByClass("reply_content");
-                Elements repliedTimes = data.getElementsByClass("fade");
-                Elements repliedPosts = data.getElementsByClass("gray");
-                if (repliedContents.size() > 0) {
+            public void onSuccess(final Document data) {
+                final Handler handler = new Handler();
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        final List<MemberReply> memberReplies = new ArrayList<>();
+                        Elements repliedContents = data.getElementsByClass("reply_content");
+                        Elements repliedTimes = data.getElementsByClass("fade");
+                        Elements repliedPosts = data.getElementsByClass("gray");
+                        if (repliedContents.size() > 0) {
+                            //确定回帖开始的位置
+                            int k = 0;
+                            while (repliedPosts.get(k).text().indexOf("回") != 0) {
+                                k++;
+                            }
+                            for (int i = 0; i < repliedContents.size(); i++) {
+                                MemberReply memberReply = new MemberReply();
+                                Member member = new Member();
+                                Post post = new Post();
+                                member.setUsername(repliedPosts.get(i + k).select("a").get(0).text());
+                                member.setUrl("https://www.v2ex.com" + repliedPosts.get(i + k).select("a").get(0).attr("href"));
+                                post.setUrl("https://www.v2ex.com" + repliedPosts.get(i + k).select("a").get(2).attr("href"));
+                                post.setTitle(repliedPosts.get(i + k).select("a").get(2).text());
+                                memberReply.setRepliedContent(repliedContents.get(i).html());
+                                memberReply.setRepliedTime(repliedTimes.get(i).text());
+                                memberReply.setRepliedCreatedMember(member);
+                                memberReply.setRepliedPost(post);
+                                memberReplies.add(memberReply);
+                            }
+                        }
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                callBack.onSuccess(memberReplies);
+                            }
+                        });
 
-                    //确定回帖开始的位置
-                    int k = 0;
-                    while (repliedPosts.get(k).text().indexOf("回") != 0){
-                        k++;
                     }
-                    for (int i = 0; i < repliedContents.size(); i++) {
-                        MemberReply memberReply = new MemberReply();
-                        Member member = new Member();
-                        Post post = new Post();
-                        member.setUsername(repliedPosts.get(i + k).select("a").get(0).text());
-                        member.setUrl("https://www.v2ex.com" + repliedPosts.get(i + k).select("a").get(0).attr("href"));
-                        post.setUrl("https://www.v2ex.com" + repliedPosts.get(i + k).select("a").get(2).attr("href"));
-                        post.setTitle(repliedPosts.get(i + k).select("a").get(2).text());
-                        memberReply.setRepliedContent(repliedContents.get(i).html());
-                        memberReply.setRepliedTime(repliedTimes.get(i).text());
-                        memberReply.setRepliedCreatedMember(member);
-                        memberReply.setRepliedPost(post);
-                        memberReplies.add(memberReply);
-                    }
-                }
-                callBack.onSuccess(memberReplies);
+                }).start();
             }
 
             @Override
@@ -285,7 +306,7 @@ public class JsoupUtils {
     }
 
     //跟据api获取node信息
-    public void getNodeInfo(final String name, final CallBack<Node> callBack){
+    public void getNodeInfo(final String name, final CallBack<Node> callBack) {
         HttpConnectionUtils.getResponse(
                 "GET",
                 null,
@@ -338,62 +359,81 @@ public class JsoupUtils {
         JsoupAsyncTask jsoupAsyncTask = new JsoupAsyncTask();
         jsoupAsyncTask.setCallBack(new CallBack<Document>() {
             @Override
-            public void onSuccess(Document data) {
-                final Post post = new Post();
-                Elements title = data.getElementsByClass("header").select("h1");
-                Elements content = data.getElementsByClass("topic_content");
-                Elements member = data.getElementsByClass("gray");
-                Elements node = data.getElementsByClass("header");
-                String member_name = member.get(0).text();
-                String node_name = node.select("a").get(1).text();
-                getMemberInfo(member_name, new CallBack<Member>() {
+            public void onSuccess(final Document data) {
+                final Handler handler = new Handler();
+                new Thread(new Runnable() {
                     @Override
-                    public void onSuccess(Member data) {
-                        post.setMember(data);
+                    public void run() {
+                        final Post post = new Post();
+                        Elements title = data.getElementsByClass("header").select("h1");
+                        Elements content = data.getElementsByClass("topic_content");
+                        Elements member = data.getElementsByClass("gray");
+                        Elements node = data.getElementsByClass("header");
+                        String member_name = member.get(0).text();
+                        //TODO  会越界
+                        String node_name = node.select("a").get(0).text();
+                        final CountDownLatch countDownLatch = new CountDownLatch(2);
+                        getMemberInfo(member_name, new CallBack<Member>() {
+                            @Override
+                            public void onSuccess(Member data) {
+                                post.setMember(data);
+                            }
+
+                            @Override
+                            public void onFailure(String msg) {
+
+                            }
+
+                            @Override
+                            public void onError() {
+
+                            }
+
+                            @Override
+                            public void onComplete() {
+                                countDownLatch.countDown();
+                            }
+                        });
+                        getNodeInfo(node_name, new CallBack<Node>() {
+                            @Override
+                            public void onSuccess(Node data) {
+                                post.setNode(data);
+                            }
+
+                            @Override
+                            public void onFailure(String msg) {
+
+                            }
+
+                            @Override
+                            public void onError() {
+
+                            }
+
+                            @Override
+                            public void onComplete() {
+                                countDownLatch.countDown();
+                            }
+                        });
+                        post.setTitle(title.text());
+                        post.setContent(content.html());
+                        post.setContent_rendered(content.html());
+                        try {
+                            countDownLatch.await();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                callBack.onSuccess(post);
+                            }
+                        });
+
                     }
+                }).start();
 
-                    @Override
-                    public void onFailure(String msg) {
 
-                    }
-
-                    @Override
-                    public void onError() {
-
-                    }
-
-                    @Override
-                    public void onComplete() {
-
-                    }
-                });
-                getNodeInfo(node_name, new CallBack<Node>() {
-                    @Override
-                    public void onSuccess(Node data) {
-                        post.setNode(data);
-                    }
-
-                    @Override
-                    public void onFailure(String msg) {
-
-                    }
-
-                    @Override
-                    public void onError() {
-
-                    }
-
-                    @Override
-                    public void onComplete() {
-
-                    }
-                });
-                post.setTitle(title.text());
-                post.setContent(content.html());
-                post.setContent_rendered(content.html());
-                while (post.getMember() != null){
-                    callBack.onSuccess(post);
-                }
             }
 
             @Override

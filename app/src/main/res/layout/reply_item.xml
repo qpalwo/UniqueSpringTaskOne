@@ -4,45 +4,52 @@
     android:id="@+id/reply_card"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="5dp"
-    android:backgroundTint="#8000"
-    android:padding="15dp"
+    android:layout_margin="0dp"
+    android:padding="8dp"
+    app:cardBackgroundColor="#ffffff"
 
     app:cardCornerRadius="5dp"
     app:cardElevation="5dp"
     app:cardPreventCornerOverlap="true"
-    app:cardUseCompatPadding="true"
-    >
+    app:cardUseCompatPadding="true">
 
     <LinearLayout
-        android:layout_width="332dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginRight="5dp"
         android:orientation="horizontal">
 
-        <android.support.v7.widget.CardView
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="75dp"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_margin="@dimen/cardview_default_radius"
-            android:background="#4000"
-            android:elevation="@dimen/cardview_compat_inset_shadow"
-            android:padding="5dp"
-            app:cardBackgroundColor="@android:color/transparent"
-            app:cardCornerRadius="4dp"
-            app:cardElevation="5dp"
-            app:cardPreventCornerOverlap="true"
-            app:cardUseCompatPadding="true"
-            app:contentPadding="5dp">
+            android:layout_marginBottom="5dp"
+            android:layout_marginRight="4dp"
+            android:orientation="vertical">
 
-            <ImageView
+            <com.makeramen.roundedimageview.RoundedImageView
                 android:id="@+id/post_img"
-                android:layout_width="75dp"
-                android:layout_height="75dp" />
-        </android.support.v7.widget.CardView>
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:layout_margin="5dp"
+                app:riv_border_color="#8000"
+                app:riv_border_width="2dp"
+                app:riv_corner_radius="4dp"
+                app:riv_oval="false" />
+
+            <TextView
+                android:id="@+id/post_reply_number"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:background="#2000"
+                android:gravity="center"
+                android:text="99" />
+
+        </LinearLayout>
 
 
         <LinearLayout
-            android:layout_width="197dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
@@ -80,15 +87,6 @@
 
 
         </LinearLayout>
-
-        <TextView
-            android:id="@+id/post_reply_number"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:background="#8000"
-            android:gravity="center"
-            android:text="99" />
 
 
     </LinearLayout>

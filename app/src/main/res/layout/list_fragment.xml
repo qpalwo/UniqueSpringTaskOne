@@ -7,14 +7,19 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/fragment_container">
+        android:id="@+id/fragment_container"
+        android:background="#DDF0ED">
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/list_recycler_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="5dp"
-            android:padding="8dp" />
+            android:layout_margin="0dp"
+            android:layout_marginLeft="5dp"
+            android:layout_marginRight="5dp"
+            android:padding="0dp"
+            android:paddingLeft="5dp"
+            android:paddingRight="5dp" />
     </FrameLayout>
 
 

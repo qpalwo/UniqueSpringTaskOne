@@ -3,10 +3,9 @@
     android:id="@+id/post_item"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="5dp"
-    android:backgroundTint="#8000"
-    android:padding="15dp"
-    app:cardBackgroundColor="@color/cardview_shadow_end_color"
+    android:backgroundTint="#ffffff"
+    android:padding="8dp"
+    app:cardBackgroundColor="#ffffff"
     app:cardCornerRadius="4dp"
     app:cardElevation="5dp"
     app:cardPreventCornerOverlap="true"
@@ -18,26 +17,16 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
-        <android.support.v7.widget.CardView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_margin="@dimen/cardview_default_radius"
-            android:background="#4000"
-            android:elevation="@dimen/cardview_compat_inset_shadow"
-            android:padding="5dp"
-            app:cardBackgroundColor="@color/cardview_shadow_end_color"
-            app:cardCornerRadius="4dp"
-            app:cardElevation="5dp"
-            app:cardPreventCornerOverlap="true"
-            app:cardUseCompatPadding="true"
-            app:contentPadding="5dp">
 
-            <ImageView
-                android:id="@+id/post_img"
-                android:layout_width="75dp"
-                android:layout_height="75dp" />
-        </android.support.v7.widget.CardView>
+        <com.makeramen.roundedimageview.RoundedImageView
+            android:id="@+id/post_img"
+            android:layout_width="70dp"
+            android:layout_height="70dp"
+            app:riv_border_color="#8000"
+            app:riv_border_width="2dp"
+            app:riv_corner_radius="4dp"
+            app:riv_oval="false"
+            android:layout_marginEnd="5dp"/>
 
 
         <LinearLayout
@@ -50,14 +39,15 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Head"
-                android:textSize="20dp"
+                android:textSize="16dp"
                 android:textStyle="bold" />
 
             <Button
                 android:id="@+id/post_lab"
-                android:layout_width="40dp"
+                android:layout_width="120dp"
                 android:layout_height="24dp"
-                android:background="#8000"
+                android:background="#2000"
+                android:elevation="2dp"
                 android:text="lab" />
 
             <LinearLayout
@@ -75,7 +65,8 @@
                     android:id="@+id/post_author"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="author" />
+                    android:text="author"
+                    android:textStyle="bold" />
 
                 <TextView
                     android:layout_width="wrap_content"

@@ -1,10 +1,12 @@
 package com.example.v2ex_client.MemberFragment;
 
 import android.content.Context;
+import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.v7.util.DiffUtil;
 import android.support.v7.widget.RecyclerView;
 import android.text.Html;
+import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,6 +24,7 @@ import com.example.v2ex_client.model.Bean.MemberReply;
 import com.example.v2ex_client.model.Bean.Post;
 import com.example.v2ex_client.model.Bean.Reply;
 import com.example.v2ex_client.model.DataUtil;
+import com.example.v2ex_client.model.HtmlAnalyUtil;
 import com.example.v2ex_client.model.JsoupUtils;
 
 import java.util.List;
@@ -59,7 +62,11 @@ public class MemberFraPresent extends BasePresent<MemberView> {
                 if (isViewAttached()) {
                     MemberRecyclerAdapter memberRecyclerAdapter = (MemberRecyclerAdapter) getView()
                             .getMemberRecycler().getAdapter();
-                    memberRecyclerAdapter.changePostData(data);
+                    if (data.size() == 0) {
+                        memberRecyclerAdapter.changePostData(null);
+                    } else {
+                        memberRecyclerAdapter.changePostData(data);
+                    }
                 }
             }
 
@@ -85,7 +92,11 @@ public class MemberFraPresent extends BasePresent<MemberView> {
                 if (isViewAttached()) {
                     MemberRecyclerAdapter memberRecyclerAdapter = (MemberRecyclerAdapter) getView()
                             .getMemberRecycler().getAdapter();
-                    memberRecyclerAdapter.changeReplyData(data);
+                    if (data.size() == 0) {
+                        memberRecyclerAdapter.changeReplyData(null);
+                    } else {
+                        memberRecyclerAdapter.changeReplyData(data);
+                    }
                 }
             }
 
@@ -126,7 +137,7 @@ public class MemberFraPresent extends BasePresent<MemberView> {
     private void detailMember(final Member member) {
         JsoupUtils jsoupUtils = new JsoupUtils();
         jsoupUtils.getMemberInfo(member.getUsername(), new CallBack<Member>() {
-               @Override
+            @Override
             public void onSuccess(Member data) {
                 addMemberFragment(data);
             }
@@ -149,7 +160,7 @@ public class MemberFraPresent extends BasePresent<MemberView> {
 
     }
 
-    private void detailPost(final Post post){
+    private void detailPost(final Post post) {
         JsoupUtils jsoupUtils = new JsoupUtils();
         jsoupUtils.getPostInfo(post.getUrl(), new CallBack<Post>() {
             @Override
@@ -184,6 +195,8 @@ public class MemberFraPresent extends BasePresent<MemberView> {
         private Member member;
 
         private Context context;
+
+        private HtmlAnalyUtil htmlAnalyUtil;
 
         class MemberDetailHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
             @BindView(R.id.member_img)
@@ -273,15 +286,14 @@ public class MemberFraPresent extends BasePresent<MemberView> {
 
             public MemberStateHolder(View itemView) {
                 super(itemView);
-                ButterKnife.bind(this.itemView);
+                ButterKnife.bind(this, itemView);
             }
         }
 
         MemberRecyclerAdapter(Context context, Member member) {
             this.context = context;
             this.member = member;
-            //memberPosts = new ArrayList<>();
-            //memberReplies = new ArrayList<>();
+            htmlAnalyUtil = new HtmlAnalyUtil(getView().getContext());
         }
 
         @Override
@@ -336,8 +348,8 @@ public class MemberFraPresent extends BasePresent<MemberView> {
                         switch (view.getId()) {
                             case R.id.member_title:
                                 //TODO 获取详细帖子信息
-                                detailPost(memberPosts.get(position - 1).getPost());
-                                //addPostFragment(memberPosts.get(position - 1).getPost());
+                               // detailPost(memberPosts.get(position - 1).getPost());
+                                addPostFragment(memberPosts.get(position - 1).getPost());
                                 break;
                             case R.id.tag:
                                 break;
@@ -365,8 +377,8 @@ public class MemberFraPresent extends BasePresent<MemberView> {
                                 break;
                             case R.id.member_replied_title:
                                 //TODO 帖子具体信息
-                                detailPost(memberPosts.get(position - 1).getPost());
-                                //addPostFragment(memberReplies.get(position - memberPosts.size() - 1).repliedPost);
+                                //detailPost(memberPosts.get(position - 1).getPost());
+                                addPostFragment(memberReplies.get(position - memberPosts.size() - 1).repliedPost);
                                 break;
                         }
                     }
@@ -438,7 +450,7 @@ public class MemberFraPresent extends BasePresent<MemberView> {
                 memberDetailHolder.memberNo.setText("V2EX第" + member.getId() + "号会员");
                 memberDetailHolder.memberTime.setText(DataUtil.convertTimeToFormat(member.getCreated()));
                 Glide.with(context)
-                        .load(member.getAvatar_normal())
+                        .load("https:" + member.getAvatar_normal())
                         .into(memberDetailHolder.memberImg);
             } else if (holder instanceof MemberPostHolder) {
                 MemberPost memberPost = memberPosts.get(position - 1);
@@ -467,7 +479,17 @@ public class MemberFraPresent extends BasePresent<MemberView> {
                     memberReplyHolder.memberRepliedCreatedName.setText(memberReply.repliedCreatedMember.getUsername());
                     memberReplyHolder.memberRepliedTime.setText(memberReply.repliedTime);
                     memberReplyHolder.memberRepliedTitle.setText(memberReply.repliedPost.getTitle());
-                    memberReplyHolder.memberReplyContent.setText(Html.fromHtml(memberReply.repliedContent));
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        memberReplyHolder.memberReplyContent.setText(Html.fromHtml(memberReply.repliedContent,
+                                Html.FROM_HTML_MODE_LEGACY,
+                                htmlAnalyUtil.getImageGetter(),
+                                null));
+                    }else {
+                        memberReplyHolder.memberReplyContent.setText(Html.fromHtml(memberReply.repliedContent,
+                                htmlAnalyUtil.getImageGetter(),
+                                null));
+                    }
+                    memberReplyHolder.memberReplyContent.setMovementMethod(LinkMovementMethod.getInstance());
                 } else {
                     MemberReply memberReply = memberReplies.get(position - memberPosts.size() - 1);
                     MemberReplyHolder memberReplyHolder = (MemberReplyHolder) holder;
@@ -476,7 +498,17 @@ public class MemberFraPresent extends BasePresent<MemberView> {
                     memberReplyHolder.memberRepliedCreatedName.setText(memberReply.repliedCreatedMember.getUsername());
                     memberReplyHolder.memberRepliedTime.setText(memberReply.repliedTime);
                     memberReplyHolder.memberRepliedTitle.setText(memberReply.repliedPost.getTitle());
-                    memberReplyHolder.memberReplyContent.setText(Html.fromHtml(memberReply.repliedContent));
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        memberReplyHolder.memberReplyContent.setText(Html.fromHtml(memberReply.repliedContent,
+                                Html.FROM_HTML_MODE_LEGACY,
+                                htmlAnalyUtil.getImageGetter(),
+                                null));
+                    }else {
+                        memberReplyHolder.memberReplyContent.setText(Html.fromHtml(memberReply.repliedContent,
+                                htmlAnalyUtil.getImageGetter(),
+                                null));
+                    }
+                    memberReplyHolder.memberReplyContent.setMovementMethod(LinkMovementMethod.getInstance());
                 }
             }
         }

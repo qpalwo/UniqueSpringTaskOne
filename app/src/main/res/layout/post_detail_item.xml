@@ -3,9 +3,10 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="5dp"
+    android:layout_marginLeft="0dp"
+    android:layout_marginRight="0dp"
     android:padding="8dp"
-    app:cardBackgroundColor="@color/cardview_shadow_end_color"
+    app:cardBackgroundColor="#ffffff"
     app:cardCornerRadius="5dp"
     app:cardElevation="5dp"
     app:cardPreventCornerOverlap="true"
@@ -21,7 +22,19 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginRight="5dp"
             android:orientation="horizontal">
+
+            <com.makeramen.roundedimageview.RoundedImageView
+                android:id="@+id/user_img"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_margin="5dp"
+                android:layout_marginEnd="5dp"
+                app:riv_border_color="#8000"
+                app:riv_border_width="2dp"
+                app:riv_corner_radius="4dp"
+                app:riv_oval="false" />
 
             <LinearLayout
                 android:layout_width="275dp"
@@ -32,8 +45,9 @@
                     android:id="@+id/post_title"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginRight="5dp"
                     android:text="TITLE"
-                    android:textSize="35dp"
+                    android:textSize="20dp"
                     android:textStyle="bold" />
 
                 <LinearLayout
@@ -64,10 +78,6 @@
 
             </LinearLayout>
 
-            <ImageView
-                android:id="@+id/user_img"
-                android:layout_width="80dp"
-                android:layout_height="80dp" />
 
         </LinearLayout>
 
@@ -75,6 +85,7 @@
             android:id="@+id/content"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginRight="5dp"
             android:text="正文" />
 
 

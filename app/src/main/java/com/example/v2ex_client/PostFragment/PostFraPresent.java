@@ -8,6 +8,7 @@ import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.Html;
+import android.text.method.LinkMovementMethod;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -40,15 +41,17 @@ import butterknife.OnClick;
 
 public class PostFraPresent extends BasePresent<PostView> {
 
-    Post post;
+    private Post post;
+    private boolean isPostInfoWell = true;
 
     PostFraPresent(Post post) {
         this.post = post;
+        detailPost(post);
     }
 
-    void initPostContent() {
+    private void initPostContent() {
         JsoupUtils jsoup = new JsoupUtils();
-        if (isViewAttached()) {
+        if (isViewAttached() && isPostInfoWell) {
             jsoup.getPostCheckedTimes(post.getUrl(), new CallBack<String>() {
                 @Override
                 public void onSuccess(String data) {
@@ -76,8 +79,6 @@ public class PostFraPresent extends BasePresent<PostView> {
         }
     }
 
-
-    //TODO  加载帖子页面时缓慢  卡顿
     void refreshData() {
         //刷新帖子内容
         initPostContent();
@@ -86,7 +87,7 @@ public class PostFraPresent extends BasePresent<PostView> {
             @Override
             public void onSuccess(List<Reply> data) {
                 //刷新回复列表
-                if (isViewAttached()) {
+                if (isViewAttached() && isPostInfoWell) {
                     PostReplyAdapter postReplyAdapter = (PostReplyAdapter) getView().getPostRecycler().getAdapter();
                     postReplyAdapter.changeData(data);
                 }
@@ -111,7 +112,7 @@ public class PostFraPresent extends BasePresent<PostView> {
 
     void setAdapter() {
         RecyclerView recyclerView;
-        if (isViewAttached()) {
+        if (isViewAttached() && isPostInfoWell) {
             recyclerView = getView().getPostRecycler();
             recyclerView.setAdapter(new PostReplyAdapter(
                     getView().getContext(),
@@ -124,6 +125,44 @@ public class PostFraPresent extends BasePresent<PostView> {
         if (isViewAttached()) {
             getView().addMemberFragment(member);
         }
+    }
+
+    private void detailPost(final Post post) {
+        if (post.getMember() == null || post.getContent() == null){
+            isPostInfoWell = false;
+            JsoupUtils jsoupUtils = new JsoupUtils();
+            jsoupUtils.getPostInfo(post.getUrl(), new CallBack<Post>() {
+                @Override
+                public void onSuccess(Post data) {
+                    post.setMember(data.getMember());
+                    post.setTitle(data.getTitle());
+                    post.setNode(data.getNode());
+                    post.setContent(data.getContent());
+                    post.setContent_rendered(data.getContent_rendered());
+                    post.setTitle(data.getTitle());
+                }
+
+                @Override
+                public void onFailure(String msg) {
+
+                }
+
+                @Override
+                public void onError() {
+
+                }
+
+                @Override
+                public void onComplete() {
+                    isPostInfoWell = true;
+                    if (getView().getPostRecycler().getAdapter() == null){
+                        setAdapter();
+                        refreshData();
+                    }
+                }
+            });
+        }
+
     }
 
     private interface ItemOnClickListener {
@@ -269,7 +308,16 @@ public class PostFraPresent extends BasePresent<PostView> {
                     viewHolder.userName.setText(reply.getReplyMember().getUsername());
                     viewHolder.postTime.setText(reply.getTime());
                     viewHolder.postReplyNumber.setText(reply.getReplyNumber());
-                    viewHolder.replyContent.setText(Html.fromHtml(reply.getReplyContent()));
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        viewHolder.replyContent.setText(Html.fromHtml(reply.getReplyContent(),
+                                Html.FROM_HTML_MODE_LEGACY,
+                                htmlAnalyUtil.getImageGetter(),
+                                null));
+                    } else {
+                        viewHolder.replyContent.setText(Html.fromHtml(reply.getReplyContent(),
+                                htmlAnalyUtil.getImageGetter(),
+                                null));
+                    }
                     Glide.with(context)
                             .load(reply.getReplyMember().getAvatar_normal())
                             .into(viewHolder.postImg);
@@ -282,8 +330,7 @@ public class PostFraPresent extends BasePresent<PostView> {
                                 Html.FROM_HTML_MODE_LEGACY,
                                 htmlAnalyUtil.getImageGetter(),
                                 null));
-                        Log.d("*******12", "onBindViewHolder: " + post.getContent());
-                    }else {
+                    } else {
                         viewHolder.content.setText(Html.fromHtml(post.getContent_rendered(),
                                 htmlAnalyUtil.getImageGetter(),
                                 null));
@@ -291,6 +338,7 @@ public class PostFraPresent extends BasePresent<PostView> {
                     if (checkedAndTime != null) {
                         viewHolder.creatTimeChecked.setText(checkedAndTime);
                     }
+                    viewHolder.content.setMovementMethod(LinkMovementMethod.getInstance());
                     viewHolder.postTitle.setText(post.getTitle());
                     viewHolder.userName.setText(post.getMember().getUsername());
                     Glide.with(context)
