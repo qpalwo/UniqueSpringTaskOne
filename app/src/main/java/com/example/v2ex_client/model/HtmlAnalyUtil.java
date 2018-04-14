@@ -26,13 +26,11 @@ public class HtmlAnalyUtil {
 
     private Html.TagHandler tagHandler;
 
-    private Context context;
 
-    private ACache aCache;
+    ACacheHelper aCacheHelper;
 
-    public HtmlAnalyUtil(Context context) {
-        this.context = context;
-        this.aCache = ACache.get(context, ACache.CACHE_NAME);
+    public HtmlAnalyUtil() {
+        aCacheHelper = ACacheHelper.getInstance();
         initUtil();
     }
 
@@ -67,7 +65,7 @@ public class HtmlAnalyUtil {
 
     private Drawable loadFromCache(String url) {
         Drawable drawable = null;
-        Bitmap bitmap = aCache.getAsBitmap(url);
+        Bitmap bitmap = ACacheHelper.getaCache().getAsBitmap(url);
         if (bitmap != null) {
             drawable = new BitmapDrawable(null, bitmap);
             drawable.setBounds(0, 0,
@@ -92,7 +90,7 @@ public class HtmlAnalyUtil {
                     drawable[0].setBounds(0, 0,
                             bitmap.getWidth(),
                             bitmap.getHeight());
-                    aCache.put(url, bitmap, ACache.TIME_HOUR * 3);
+                    ACacheHelper.getaCache().put(url, bitmap, ACache.TIME_HOUR * 3);
                     final Drawable temp = Drawable.createFromStream(inputStream, url);
                     inputStream.close();
                     countDownLatch.countDown();
@@ -123,7 +121,7 @@ public class HtmlAnalyUtil {
                     drawable[0].setBounds(0, 0,
                             drawable[0].getIntrinsicWidth(),
                             drawable[0].getIntrinsicHeight());
-                    aCache.put(url, drawable[0], ACache.TIME_HOUR * 3);
+                    ACacheHelper.getaCache().put(url, drawable[0], ACache.TIME_HOUR * 3);
                     final Drawable temp = Drawable.createFromStream(inputStream, url);
                     inputStream.close();
                     countDownLatch.countDown();
